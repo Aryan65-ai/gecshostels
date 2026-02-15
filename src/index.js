@@ -13,6 +13,7 @@ import meRouter from './routes/me.js';
 import adminRouter from './routes/admin.js';
 import noticesRouter from './routes/notices.js';
 import complaintsRouter from './routes/complaints.js';
+import feesRouter from './routes/fees.js';
 import { seedDatabase } from './seed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +36,20 @@ app.use('/api/me', meRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/notices', noticesRouter);
 app.use('/api/complaints', complaintsRouter);
+app.use('/api/fees', feesRouter);
+
+// Public stats endpoint (no auth needed — so students can see counts)
+app.get('/api/stats', async (req, res) => {
+  try {
+    const { pool } = await import('./lib/db.js');
+    const [[{ students }]] = await pool.query('SELECT COUNT(*) as students FROM users WHERE role="student"');
+    const [[{ rooms }]] = await pool.query('SELECT COUNT(*) as rooms FROM rooms WHERE status="available"');
+    const [[{ notices }]] = await pool.query('SELECT COUNT(*) as notices FROM notices');
+    res.json({ students, availableRooms: rooms, notices });
+  } catch (err) {
+    res.json({ students: 0, availableRooms: 0, notices: 0 });
+  }
+});
 
 // Serve static frontend (HTML, CSS, JS) from project root
 app.use(express.static(projectRoot));

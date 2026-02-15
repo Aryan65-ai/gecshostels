@@ -97,10 +97,10 @@
       }
     }
 
-    // ── Fees (dynamic from admin) ──
+    // ── Fees (dynamic from admin — fetched from backend) ──
     const messFeesAmount = document.getElementById('messFeesAmount');
     const hostelFeesList = document.getElementById('hostelFeesList');
-    const fees = API.getFees();
+    const fees = await API.getFees();
     if (messFeesAmount) { messFeesAmount.textContent = fees.mess; }
     if (hostelFeesList) {
       const items = [
@@ -141,4 +141,13 @@
 
   // Run init
   init().catch(err => console.error('[app.js] Init error:', err));
+
+  // Auto-refresh data when user comes back to this tab
+  // This ensures admin updates (notices, rooms, fees) show up on other devices
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      API.resetBackendCache(); // Force re-check backend
+      init().catch(err => console.error('[app.js] Refresh error:', err));
+    }
+  });
 })();

@@ -37,8 +37,8 @@
     }
   }
 
-  function renderFeeOptions() {
-    const fees = API.getFees(); // Uses API layer
+  async function renderFeeOptions() {
+    const fees = await API.getFees(); // Fetches from backend
     const user = API.getCurrentUser(); // Uses API layer
 
     let hostelAmount = 18000; // Default single
@@ -194,9 +194,9 @@
     return doc;
   }
 
-  function init() {
+  async function init() {
     fillFromLoggedInUser();
-    renderFeeOptions();
+    await renderFeeOptions();
     showStep(1);
     if (document.getElementById('year')) document.getElementById('year').textContent = new Date().getFullYear();
 

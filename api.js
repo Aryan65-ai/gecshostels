@@ -9,6 +9,8 @@ const API = (function () {
     const BASE = window.location.origin;
     let _token = localStorage.getItem('authToken') || null;
     let _backendAvailable = null; // null = not checked yet
+    let _lastBackendCheck = 0; // timestamp of last check
+    const BACKEND_CHECK_INTERVAL = 30000; // re-check every 30 seconds
 
     // ── Helpers ──
     function setToken(token) {
@@ -37,9 +39,12 @@ const API = (function () {
         return data;
     }
 
-    // ── Check if backend is running ──
+    // ── Check if backend is running (re-checks every 30s) ──
     async function checkBackend() {
-        if (_backendAvailable !== null) return _backendAvailable;
+        const now = Date.now();
+        if (_backendAvailable !== null && (now - _lastBackendCheck) < BACKEND_CHECK_INTERVAL) {
+            return _backendAvailable;
+        }
         try {
             const res = await fetch(BASE + '/health', { method: 'GET', signal: AbortSignal.timeout(3000) });
             const data = await res.json();
@@ -47,8 +52,15 @@ const API = (function () {
         } catch {
             _backendAvailable = false;
         }
+        _lastBackendCheck = now;
         console.log('[API] Backend available:', _backendAvailable);
         return _backendAvailable;
+    }
+
+    // Force re-check backend on next call
+    function resetBackendCache() {
+        _backendAvailable = null;
+        _lastBackendCheck = 0;
     }
 
     // ── localStorage helpers (fallback) ──
@@ -475,13 +487,33 @@ const API = (function () {
     }
 
     // ══════════════════════════════════════
-    //  FEES
+    //  FEES (synced via backend)
     // ══════════════════════════════════════
-    function getFees() {
+    async function getFees() {
+        const online = await checkBackend();
+        if (online) {
+            try {
+                const fees = await request('GET', '/api/fees');
+                // Cache in localStorage for offline fallback
+                setStore('fees', fees);
+                return fees;
+            } catch {
+                return getStore('fees', { mess: '₹ 3,500 / month', single: '₹ 18,000 / year', triple: '₹ 15,000 / year' });
+            }
+        }
         return getStore('fees', { mess: '₹ 3,500 / month', single: '₹ 18,000 / year', triple: '₹ 15,000 / year' });
     }
 
-    function setFees(fees) {
+    async function setFees(fees) {
+        const online = await checkBackend();
+        if (online) {
+            try {
+                await request('PUT', '/api/fees', fees);
+            } catch (e) {
+                console.error('[API] Failed to save fees to backend:', e);
+            }
+        }
+        // Always save locally too as cache
         setStore('fees', fees);
     }
 
@@ -489,23 +521,27 @@ const API = (function () {
     //  STATS (for home page quick stats)
     // ══════════════════════════════════════
     async function getStats() {
-        const rooms = await getRooms();
-        const notices = await getNotices();
         const online = await checkBackend();
-        let studentCount = 0;
         if (online) {
             try {
-                const data = await request('GET', '/api/admin/stats');
-                studentCount = data.students || 0;
+                // Use public stats endpoint (no auth needed)
+                const data = await request('GET', '/api/stats');
+                return {
+                    availableRooms: data.availableRooms || 0,
+                    students: data.students || 0,
+                    notices: data.notices || 0,
+                    floors: 4
+                };
             } catch {
-                studentCount = getStore('hostelUsers', []).length;
+                // Fall through to manual count
             }
-        } else {
-            studentCount = getStore('hostelUsers', []).length;
         }
+        // Offline fallback
+        const rooms = await getRooms();
+        const notices = await getNotices();
         return {
             availableRooms: rooms.filter(r => r.available).length,
-            students: studentCount,
+            students: getStore('hostelUsers', []).length,
             notices: notices.length,
             floors: 4
         };
@@ -514,6 +550,7 @@ const API = (function () {
     // ── Public API ──
     return {
         checkBackend,
+        resetBackendCache,
         // Auth
         signup,
         login,
@@ -555,3 +592,4 @@ const API = (function () {
         isOnline: () => _backendAvailable === true
     };
 })();
+

@@ -217,7 +217,7 @@
         setText('infoAcademicYear', acadYear);
 
         // Payments & Fees
-        updateFinancials(user);
+        await updateFinancials(user);
         renderMyPayments(await API.getMyBookings(), await API.getPayments());
         // Note: getMyBookings returns bookings, getPayments returns payments. 
         // The profile page combines them or shows payments. 
@@ -230,8 +230,8 @@
         if (el) el.textContent = text;
     }
 
-    function updateFinancials(user) {
-        const fees = API.getFees();
+    async function updateFinancials(user) {
+        const fees = await API.getFees();
         const parseFee = (str) => parseInt(String(str).replace(/[₹,\s]/g, '').split('/')[0]) || 0;
 
         let hostelFee = typeof fees.single === 'number' ? fees.single : parseFee(fees.single);

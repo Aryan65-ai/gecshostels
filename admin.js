@@ -363,13 +363,15 @@
 
     // ── Fees ──
     if (updateFeesForm) {
-        // Load current fees
-        const fees = API.getFees();
-        if (fees) {
-            if (document.getElementById('messFee')) document.getElementById('messFee').value = fees.mess;
-            if (document.getElementById('singleFee')) document.getElementById('singleFee').value = fees.single;
-            if (document.getElementById('tripleFee')) document.getElementById('tripleFee').value = fees.triple;
-        }
+        // Load current fees from backend
+        (async () => {
+            const fees = await API.getFees();
+            if (fees) {
+                if (document.getElementById('messFee')) document.getElementById('messFee').value = fees.mess;
+                if (document.getElementById('singleFee')) document.getElementById('singleFee').value = fees.single;
+                if (document.getElementById('tripleFee')) document.getElementById('tripleFee').value = fees.triple;
+            }
+        })();
 
         updateFeesForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -377,8 +379,8 @@
             const single = document.getElementById('singleFee').value.trim();
             const triple = document.getElementById('tripleFee').value.trim();
 
-            API.setFees({ mess, single, triple });
-            alert('Fees updated (stored locally).');
+            await API.setFees({ mess, single, triple });
+            alert('Fees updated! All users will see the new fees.');
         });
     }
 
