@@ -2,14 +2,17 @@
  * api.js — Central API service for GEC Hostel Management System
  * 
  * This module provides a unified interface to the backend API.
- * If the backend is unavailable (e.g. hosted on GitHub Pages),
- * it automatically falls back to localStorage so the app still works.
+ * If the backend is unavailable or MySQL is down, it ALWAYS falls
+ * back to localStorage so the app still works on any device.
+ * 
+ * EVERY backend call is wrapped in try/catch — if the database is
+ * down, data goes to localStorage instead of crashing.
  */
 const API = (function () {
     const BASE = window.location.origin;
     let _token = localStorage.getItem('authToken') || null;
-    let _backendAvailable = null; // null = not checked yet
-    let _lastBackendCheck = 0; // timestamp of last check
+    let _backendAvailable = null;
+    let _lastBackendCheck = 0;
     const BACKEND_CHECK_INTERVAL = 30000; // re-check every 30 seconds
 
     // ── Helpers ──
@@ -57,7 +60,6 @@ const API = (function () {
         return _backendAvailable;
     }
 
-    // Force re-check backend on next call
     function resetBackendCache() {
         _backendAvailable = null;
         _lastBackendCheck = 0;
@@ -77,27 +79,34 @@ const API = (function () {
     async function signup(data) {
         const online = await checkBackend();
         if (online) {
-            const res = await request('POST', '/api/auth/signup', {
-                full_name: data.fullName || (data.firstName + ' ' + data.lastName),
-                email: data.email,
-                phone: data.phone || null,
-                password: data.password,
-                student_id: data.studentId,
-                roll_number: data.rollNumber,
-                batch: data.batch,
-                branch: data.branch,
-                hostel_type: data.hostelType,
-                room_preference: data.roomPreference,
-                photo_url: data.photo
-            });
-            setToken(res.token);
-            const user = {
-                id: res.id, fullName: res.full_name, email: res.email, phone: res.phone, role: 'student', token: res.token,
-                studentId: data.studentId, rollNumber: data.rollNumber, batch: data.batch, branch: data.branch,
-                hostelType: data.hostelType, roomPreference: data.roomPreference, photo: data.photo
-            };
-            localStorage.setItem('loggedInUser', JSON.stringify(user));
-            return user;
+            try {
+                const res = await request('POST', '/api/auth/signup', {
+                    full_name: data.fullName || (data.firstName + ' ' + data.lastName),
+                    email: data.email,
+                    phone: data.phone || null,
+                    password: data.password,
+                    student_id: data.studentId,
+                    roll_number: data.rollNumber,
+                    batch: data.batch,
+                    branch: data.branch,
+                    hostel_type: data.hostelType,
+                    room_preference: data.roomPreference,
+                    photo_url: data.photo
+                });
+                setToken(res.token);
+                const user = {
+                    id: res.id, fullName: res.full_name, email: res.email, phone: res.phone, role: 'student', token: res.token,
+                    studentId: data.studentId, rollNumber: data.rollNumber, batch: data.batch, branch: data.branch,
+                    hostelType: data.hostelType, roomPreference: data.roomPreference, photo: data.photo
+                };
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                return user;
+            } catch (err) {
+                // If it's a duplicate email error from DB, re-throw it
+                if (err && err.status === 409) throw err;
+                console.warn('[API] Backend signup failed, falling back to localStorage:', err);
+                // Fall through to localStorage
+            }
         }
         // Fallback: localStorage
         const users = getStore('hostelUsers', []);
@@ -105,6 +114,7 @@ const API = (function () {
         if (exists) throw { error: 'Email already exists' };
         const newUser = {
             id: Date.now(),
+            fullName: data.fullName || ((data.firstName || '') + ' ' + (data.lastName || '')).trim(),
             firstName: data.firstName || '',
             lastName: data.lastName || '',
             studentId: data.studentId || '',
@@ -130,15 +140,22 @@ const API = (function () {
     async function login(email, password) {
         const online = await checkBackend();
         if (online) {
-            const res = await request('POST', '/api/auth/login', { email, password });
-            setToken(res.token);
-            const user = {
-                id: res.id, fullName: res.full_name, email: res.email, phone: res.phone, role: res.role, token: res.token,
-                studentId: res.student_id, rollNumber: res.roll_number, batch: res.batch, branch: res.branch,
-                hostelType: res.hostel_type, roomPreference: res.room_preference, assignedRoom: res.assigned_room, photo: res.photo_url
-            };
-            localStorage.setItem('loggedInUser', JSON.stringify(user));
-            return user;
+            try {
+                const res = await request('POST', '/api/auth/login', { email, password });
+                setToken(res.token);
+                const user = {
+                    id: res.id, fullName: res.full_name, email: res.email, phone: res.phone, role: res.role, token: res.token,
+                    studentId: res.student_id, rollNumber: res.roll_number, batch: res.batch, branch: res.branch,
+                    hostelType: res.hostel_type, roomPreference: res.room_preference, assignedRoom: res.assigned_room, photo: res.photo_url
+                };
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                return user;
+            } catch (err) {
+                // If it's a clear auth error (wrong password), re-throw
+                if (err && (err.status === 401 || err.status === 400)) throw err;
+                console.warn('[API] Backend login failed, falling back to localStorage:', err);
+                // Fall through to localStorage
+            }
         }
         // Fallback: localStorage
         const users = getStore('hostelUsers', []);
@@ -167,29 +184,38 @@ const API = (function () {
     async function getRooms() {
         const online = await checkBackend();
         if (online) {
-            const rooms = await request('GET', '/api/rooms');
-            return rooms.map(r => ({
-                id: r.id,
-                floor: parseInt(String(r.room_number).charAt(0)) || 1,
-                room: r.room_number,
-                type: r.room_type,
-                available: r.status === 'available',
-                price: r.price_per_night,
-                capacity: r.capacity
-            }));
+            try {
+                const rooms = await request('GET', '/api/rooms');
+                const mapped = rooms.map(r => ({
+                    id: r.id,
+                    floor: parseInt(String(r.room_number).charAt(0)) || 1,
+                    room: r.room_number,
+                    type: r.room_type,
+                    available: r.status === 'available',
+                    price: r.price_per_night,
+                    capacity: r.capacity
+                }));
+                // Cache for offline use
+                setStore('hostel_rooms', mapped);
+                return mapped;
+            } catch (err) {
+                console.warn('[API] Failed to fetch rooms from backend:', err);
+            }
         }
-        // Fallback
         return getStore('hostel_rooms', getDefaultRooms());
     }
 
     async function saveRoom(data) {
         const online = await checkBackend();
         if (online) {
-            return await request('POST', '/api/rooms', data);
+            try {
+                return await request('POST', '/api/rooms', data);
+            } catch (err) {
+                console.warn('[API] Failed to save room to backend:', err);
+            }
         }
         // Fallback
         const rooms = getStore('hostel_rooms', getDefaultRooms());
-        // Check update
         const idx = rooms.findIndex(r => r.room === data.room);
         if (idx !== -1) {
             rooms[idx] = { ...rooms[idx], ...data };
@@ -203,9 +229,12 @@ const API = (function () {
     async function deleteRoom(roomNumber) {
         const online = await checkBackend();
         if (online) {
-            return await request('DELETE', '/api/rooms/' + roomNumber);
+            try {
+                return await request('DELETE', '/api/rooms/' + roomNumber);
+            } catch (err) {
+                console.warn('[API] Failed to delete room from backend:', err);
+            }
         }
-        // Fallback
         const rooms = getStore('hostel_rooms', getDefaultRooms());
         const newRooms = rooms.filter(r => r.room !== roomNumber);
         setStore('hostel_rooms', newRooms);
@@ -230,7 +259,9 @@ const API = (function () {
         const online = await checkBackend();
         if (online) {
             try {
-                return await request('GET', '/api/notices');
+                const notices = await request('GET', '/api/notices');
+                setStore('notices', notices); // cache
+                return notices;
             } catch {
                 return getStore('notices', defaultNotices());
             }
@@ -241,7 +272,11 @@ const API = (function () {
     async function addNotice(text) {
         const online = await checkBackend();
         if (online) {
-            return await request('POST', '/api/notices', { text });
+            try {
+                return await request('POST', '/api/notices', { text });
+            } catch (err) {
+                console.warn('[API] Failed to add notice to backend:', err);
+            }
         }
         const notices = getStore('notices', defaultNotices());
         const n = { id: Date.now(), text, created_at: new Date().toISOString() };
@@ -291,7 +326,11 @@ const API = (function () {
     async function getComplaints() {
         const online = await checkBackend();
         if (online) {
-            try { return await request('GET', '/api/complaints'); } catch { }
+            try {
+                const complaints = await request('GET', '/api/complaints');
+                setStore('complaints', complaints); // cache
+                return complaints;
+            } catch { }
         }
         return getStore('complaints', []);
     }
@@ -303,8 +342,10 @@ const API = (function () {
         const online = await checkBackend();
         if (online) {
             try {
-                return await request('POST', '/api/payments/submit', paymentRecord);
-            } catch {
+                const result = await request('POST', '/api/payments/submit', paymentRecord);
+                return result;
+            } catch (err) {
+                console.warn('[API] Payment backend failed, saving locally:', err);
                 return savePaymentLocal(paymentRecord);
             }
         }
@@ -313,15 +354,26 @@ const API = (function () {
 
     function savePaymentLocal(record) {
         const list = getStore('payments', []);
-        list.push({ time: new Date().toISOString(), ...record });
+        const saved = {
+            id: Date.now(),
+            time: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+            status: 'pending',
+            ...record
+        };
+        list.push(saved);
         setStore('payments', list);
-        return record;
+        return saved;
     }
 
     async function getPayments() {
         const online = await checkBackend();
         if (online) {
-            try { return await request('GET', '/api/payments'); } catch { }
+            try {
+                const payments = await request('GET', '/api/payments');
+                setStore('payments', payments); // cache
+                return payments;
+            } catch { }
         }
         return getStore('payments', []);
     }
@@ -332,7 +384,11 @@ const API = (function () {
     async function createBooking(data) {
         const online = await checkBackend();
         if (online) {
-            return await request('POST', '/api/bookings', data);
+            try {
+                return await request('POST', '/api/bookings', data);
+            } catch (err) {
+                console.warn('[API] Failed to create booking on backend:', err);
+            }
         }
         const bookings = getStore('bookings', []);
         const b = { id: Date.now(), ...data, status: 'confirmed', payment_status: 'unpaid', created_at: new Date().toISOString() };
@@ -344,7 +400,13 @@ const API = (function () {
     async function getBookings() {
         const online = await checkBackend();
         if (online) {
-            return await request('GET', '/api/bookings');
+            try {
+                const bookings = await request('GET', '/api/bookings');
+                setStore('bookings', bookings); // cache
+                return bookings;
+            } catch (err) {
+                console.warn('[API] Failed to get bookings from backend:', err);
+            }
         }
         return getStore('bookings', []);
     }
@@ -357,7 +419,7 @@ const API = (function () {
         if (online) {
             try {
                 const res = await request('GET', '/api/me');
-                return {
+                const profile = {
                     id: res.id,
                     fullName: res.full_name,
                     email: res.email,
@@ -373,6 +435,9 @@ const API = (function () {
                     photo: res.photo_url,
                     createdAt: res.created_at
                 };
+                // Update local cache
+                localStorage.setItem('loggedInUser', JSON.stringify(profile));
+                return profile;
             } catch {
                 return getCurrentUser();
             }
@@ -383,13 +448,17 @@ const API = (function () {
     async function updateProfile(data) {
         const online = await checkBackend();
         if (online) {
-            return await request('PUT', '/api/me', {
-                phone: data.phone,
-                room_preference: data.roomPreference,
-                photo_url: data.photo
-            });
+            try {
+                return await request('PUT', '/api/me', {
+                    phone: data.phone,
+                    room_preference: data.roomPreference,
+                    photo_url: data.photo
+                });
+            } catch (err) {
+                console.warn('[API] Failed to update profile on backend:', err);
+            }
         }
-        // Fallback local update is tricky as store is simplistic
+        // Fallback local update
         const user = getCurrentUser();
         if (user) {
             const updated = { ...user, ...data };
@@ -428,7 +497,11 @@ const API = (function () {
     async function adminGetStudents() {
         const online = await checkBackend();
         if (online) {
-            try { return await request('GET', '/api/admin/students'); } catch { }
+            try {
+                const students = await request('GET', '/api/admin/students');
+                setStore('hostelUsers', students); // cache for fallback
+                return students;
+            } catch { }
         }
         return getStore('hostelUsers', []);
     }
@@ -436,7 +509,11 @@ const API = (function () {
     async function adminGetStudent(id) {
         const online = await checkBackend();
         if (online) {
-            return await request('GET', '/api/admin/students/' + id);
+            try {
+                return await request('GET', '/api/admin/students/' + id);
+            } catch (err) {
+                console.warn('[API] Failed to get student from backend:', err);
+            }
         }
         const users = getStore('hostelUsers', []);
         return users.find(u => u.id == id) || null;
@@ -445,28 +522,36 @@ const API = (function () {
     async function adminGetAllPayments() {
         const online = await checkBackend();
         if (online) {
-            try { return await request('GET', '/api/admin/payments'); } catch { }
+            try {
+                const payments = await request('GET', '/api/admin/payments');
+                setStore('adminPayments', payments); // cache
+                return payments;
+            } catch { }
         }
+        // Fallback: show all local payments
         return getStore('payments', []);
     }
 
     async function adminConfirmPayment(data) {
         const online = await checkBackend();
         if (online) {
-            const body = {};
-            if (typeof data === 'object') {
-                if (data.paymentId) body.paymentId = data.paymentId;
-                if (data.transactionId) body.transactionId = data.transactionId;
-            } else {
-                // Legacy: plain txnId string
-                body.transactionId = data;
+            try {
+                const body = {};
+                if (typeof data === 'object') {
+                    if (data.paymentId) body.paymentId = data.paymentId;
+                    if (data.transactionId) body.transactionId = data.transactionId;
+                } else {
+                    body.transactionId = data;
+                }
+                return await request('POST', '/api/admin/payments/confirm', body);
+            } catch (err) {
+                console.warn('[API] Failed to confirm payment on backend:', err);
             }
-            return await request('POST', '/api/admin/payments/confirm', body);
         }
         // Fallback
         const payments = getStore('payments', []);
-        const txnId = typeof data === 'object' ? data.transactionId : data;
-        const idx = payments.findIndex(p => p.transactionId === txnId);
+        const txnId = typeof data === 'object' ? (data.paymentId || data.transactionId) : data;
+        const idx = payments.findIndex(p => (p.id == txnId) || (p.transactionId === txnId));
         if (idx >= 0) { payments[idx].status = 'confirmed'; setStore('payments', payments); }
         return { ok: true };
     }
@@ -474,14 +559,18 @@ const API = (function () {
     async function adminRejectPayment(data) {
         const online = await checkBackend();
         if (online) {
-            const body = {};
-            if (data.paymentId) body.paymentId = data.paymentId;
-            if (data.transactionId) body.transactionId = data.transactionId;
-            return await request('POST', '/api/admin/payments/reject', body);
+            try {
+                const body = {};
+                if (data.paymentId) body.paymentId = data.paymentId;
+                if (data.transactionId) body.transactionId = data.transactionId;
+                return await request('POST', '/api/admin/payments/reject', body);
+            } catch (err) {
+                console.warn('[API] Failed to reject payment on backend:', err);
+            }
         }
         const payments = getStore('payments', []);
-        const txnId = data.transactionId;
-        const idx = payments.findIndex(p => p.transactionId === txnId);
+        const txnId = data.paymentId || data.transactionId;
+        const idx = payments.findIndex(p => (p.id == txnId) || (p.transactionId === txnId));
         if (idx >= 0) { payments[idx].status = 'rejected'; setStore('payments', payments); }
         return { ok: true };
     }
@@ -494,7 +583,6 @@ const API = (function () {
         if (online) {
             try {
                 const fees = await request('GET', '/api/fees');
-                // Cache in localStorage for offline fallback
                 setStore('fees', fees);
                 return fees;
             } catch {
@@ -513,7 +601,6 @@ const API = (function () {
                 console.error('[API] Failed to save fees to backend:', e);
             }
         }
-        // Always save locally too as cache
         setStore('fees', fees);
     }
 
@@ -524,7 +611,6 @@ const API = (function () {
         const online = await checkBackend();
         if (online) {
             try {
-                // Use public stats endpoint (no auth needed)
                 const data = await request('GET', '/api/stats');
                 return {
                     availableRooms: data.availableRooms || 0,
@@ -532,9 +618,7 @@ const API = (function () {
                     notices: data.notices || 0,
                     floors: 4
                 };
-            } catch {
-                // Fall through to manual count
-            }
+            } catch { }
         }
         // Offline fallback
         const rooms = await getRooms();
@@ -592,4 +676,3 @@ const API = (function () {
         isOnline: () => _backendAvailable === true
     };
 })();
-

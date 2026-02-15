@@ -70,11 +70,56 @@
 
     // ── Data Loading ──
     async function loadData() {
-        updateStats();
+        await updateStats();
         loadStudents();
         loadPayments();
         loadRooms();
         loadComplaints();
+        loadScreenshots();
+    }
+
+    // ── Screenshots Gallery ──
+    async function loadScreenshots() {
+        const gallery = document.getElementById('screenshotsGallery');
+        if (!gallery) return;
+        try {
+            const payments = await API.adminGetAllPayments();
+            const withScreenshots = payments.filter(p => p.screenshotData || p.screenshot_data);
+            if (withScreenshots.length === 0) {
+                gallery.innerHTML = '<p class="muted">No screenshots uploaded yet.</p>';
+                return;
+            }
+            gallery.innerHTML = withScreenshots.map(p => {
+                const imgSrc = p.screenshotData || p.screenshot_data;
+                const src = imgSrc.startsWith('data:') ? imgSrc : 'data:image/png;base64,' + imgSrc;
+                const statusBadge = p.status === 'pending'
+                    ? '<span style="color:#f59e0b;">⏳ Pending</span>'
+                    : p.status === 'success' || p.status === 'confirmed'
+                        ? '<span style="color:#10b981;">✅ Confirmed</span>'
+                        : '<span style="color:#ef4444;">❌ Rejected</span>';
+                return `
+                <div style="border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:16px;background:rgba(0,0,0,0.2);">
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                        <img src="${src}" style="max-width:200px;border-radius:8px;cursor:pointer;" onclick="window.open('${src}','_blank')" title="Click to enlarge"/>
+                        <div style="flex:1;min-width:200px;">
+                            <p><strong>Student:</strong> ${p.studentName || p.student_name || '—'}</p>
+                            <p><strong>Amount:</strong> ₹${(p.amount || 0).toLocaleString()}</p>
+                            <p><strong>Fee Type:</strong> ${p.feeType || p.fee_type || '—'}</p>
+                            <p><strong>Txn ID:</strong> ${p.transactionId || p.transaction_id || '—'}</p>
+                            <p><strong>Status:</strong> ${statusBadge}</p>
+                            ${p.status === 'pending' ? `
+                                <div style="display:flex;gap:8px;margin-top:8px;">
+                                    <button class="btn primary" onclick="confirmPayment(${p.id}, '${p.transactionId || p.transaction_id || ''}')">✅ Confirm</button>
+                                    <button class="btn" style="background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.5);" onclick="rejectPayment(${p.id}, '${p.transactionId || p.transaction_id || ''}')">❌ Reject</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            gallery.innerHTML = '<p class="muted">Failed to load screenshots.</p>';
+        }
     }
 
     // ── Stats ──
@@ -387,5 +432,20 @@
     // Refresh buttons
     const refreshBtns = document.querySelectorAll('#refreshPendingPayments, #refreshScreenshots, .btn-refresh');
     refreshBtns.forEach(btn => btn.addEventListener('click', loadData));
+
+    // Auto-refresh when admin switches back to this tab
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+            const user = API.getCurrentUser();
+            if (user && user.role === 'admin') {
+                API.resetBackendCache();
+                loadData();
+            }
+        }
+    });
+
+    // Year
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 })();
