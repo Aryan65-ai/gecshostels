@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel • Government Engineering College Hostel</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://i.ibb.co/Lh5yXwk8/download-1.png">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-logo" alt="GEC Hostel" src="https://i.ibb.co/Lh5yXwk8/download-1.png" />
+        <span class="brand-title">GEC Samastipur Hostel</span>
+      </div>
+      <nav class="nav">
+        <a href="home.html" class="nav-link">Home</a>
+        <a href="hostel.html" class="nav-link active">Hostel</a>
+        <a href="payment.html" class="nav-link">Payment</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="student-profile.html" class="nav-link">Profile</a>
+        <a href="admin.html" class="nav-link">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Hostel Overview</h2>
+      <p>Our hostel provides safe, secure and affordable accommodation for students of Government Engineering College.
+        Room availability can be viewed on the homepage.</p>
+    </section>
+
+    <section class="card">
+      <h2>Facilities</h2>
+      <ul class="list">
+        <li>24x7 Security and CCTV surveillance</li>
+        <li>Wi‑Fi enabled study rooms</li>
+        <li>RO drinking water and hot water access</li>
+        <li>Shared laundry area</li>
+        <li>Mess with vegetarian meals (see Fees for charges)</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Floors & Room Types</h2>
+      <div class="grid two">
+        <div class="fee-card">
+          <h3>Floors</h3>
+          <ul class="list">
+            <li>Floor 4: Single rooms</li>
+            <li>Floor 3: Single rooms</li>
+            <li>Floor 2: Single & Triple rooms</li>
+            <li>Floor 1: Triple rooms</li>
+          </ul>
+        </div>
+        <div class="fee-card">
+          <h3>Room Availability</h3>
+          <p class="muted">View available rooms by floor and type on the homepage.</p>
+          <a class="btn primary" href="home.html#rooms">View Room Availability</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Rules</h2>
+      <ul class="list">
+        <li>Maintain discipline and cleanliness in rooms and common areas</li>
+        <li>Quiet hours after 10:00 PM</li>
+        <li>No cooking electrical appliances inside rooms</li>
+        <li>Visitors are allowed only in designated hours</li>
+        <li>Any issues should be reported via i‑Complain on the homepage</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Mess</h2>
+      <p>Nutritious vegetarian meals served three times a day. Mess committee includes student representatives.</p>
+    </section>
+
+    <section class="card">
+      <h2>Contacts</h2>
+      <p>Warden: +91-90000-00000 • Office: hostel@example.edu</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; <span id="year"></span> Government Engineering College Samastipur Hostel</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var y = document.getElementById('year');
+      if (y) { y.textContent = String(new Date().getFullYear()); }
+    })();
+  </script>
+</body>
+
+</html>

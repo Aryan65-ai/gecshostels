@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay Fees • GEC Hostel</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://i.ibb.co/Lh5yXwk8/download-1.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .payment-container {
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .payment-step {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin: 16px 0;
+      display: none;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .payment-step.active {
+      display: block;
+    }
+
+    .student-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .student-banner .name {
+      color: var(--primary-light);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .student-banner .id {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-left: 8px;
+    }
+
+    .student-banner a {
+      color: var(--primary-light);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: color var(--transition);
+    }
+
+    .student-banner a:hover {
+      color: var(--primary);
+    }
+
+    .fee-option {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--glass);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fee-option::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .fee-option:hover {
+      border-color: var(--border-hover);
+      background: rgba(16, 185, 129, 0.04);
+      transform: translateX(4px);
+    }
+
+    .fee-option:hover::before {
+      opacity: 1;
+    }
+
+    .fee-option.selected {
+      border-color: var(--primary);
+      background: rgba(16, 185, 129, 0.08);
+      box-shadow: 0 0 0 1px var(--primary), 0 0 20px var(--primary-glow);
+    }
+
+    .fee-option.selected::before {
+      opacity: 1;
+    }
+
+    .fee-option h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .fee-option h3::before {
+      display: none;
+    }
+
+    .fee-option .amount {
+      font-weight: 800;
+      font-size: 1.15rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .fee-option .period {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .progress-bar {
+      background: rgba(50, 70, 110, 0.3);
+      height: 3px;
+      border-radius: 2px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, var(--primary-dark), var(--primary), var(--primary-light));
+      height: 100%;
+      width: 0%;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 2px;
+    }
+
+    .step-dots {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(50, 70, 110, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .step-dot.done {
+      background: var(--primary);
+    }
+
+    .step-dot.current {
+      background: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-glow);
+      transform: scale(1.2);
+    }
+
+    .upi-box {
+      background: linear-gradient(135deg, rgba(6, 11, 24, 0.9) 0%, rgba(16, 185, 129, 0.06) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 18px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upi-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    .upi-box .upi-id {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--primary-light);
+      letter-spacing: 0.02em;
+      margin: 10px 0;
+      font-family: 'Inter', monospace;
+    }
+
+    .upi-box .copy-btn {
+      margin-top: 12px;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #052e16;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 700;
+      transition: all var(--transition);
+    }
+
+    .upi-box .copy-btn:hover {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(50, 70, 110, 0.2);
+      color: var(--text);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-total {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .summary-total span:last-child {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .receipt-preview {
+      background: rgba(10, 17, 40, 0.8);
+      color: var(--text);
+      padding: 24px;
+      border-radius: var(--radius);
+      margin: 16px 0;
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+    }
+
+    .receipt-header {
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+
+    .receipt-details p {
+      margin: 8px 0;
+    }
+
+    .receipt-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-logo" alt="GEC Hostel" src="https://i.ibb.co/Lh5yXwk8/download-1.png" />
+        <span class="brand-title">GEC Samastipur Hostel</span>
+      </div>
+      <nav class="nav">
+        <a href="home.html" class="nav-link">Home</a>
+        <a href="hostel.html" class="nav-link">Hostel</a>
+        <a href="payment.html" class="nav-link active">Payment</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="student-profile.html" class="nav-link">Profile</a>
+        <a href="admin.html" class="nav-link">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container payment-container">
+    <!-- Logged-in student banner (auto-filled by JS) -->
+    <div id="studentBanner" class="student-banner hidden">
+      <div>
+        <span class="name" id="bannerName">—</span>
+        <span class="id" id="bannerId">—</span>
+      </div>
+      <a href="student-profile.html">Profile →</a>
+    </div>
+    <div id="studentNotLoggedIn" class="student-banner hidden" style="border-color: var(--muted);">
+      <span class="muted">Sign in at <a href="student-profile.html">Student Profile</a> to auto-fill your details for
+        payment.</span>
+    </div>
+
+    <section class="card">
+      <h1>Pay Hostel Fees</h1>
+      <p class="muted">Select fee type and pay via UPI. Fees are set by hostel admin.</p>
+      <div class="step-dots">
+        <span class="step-dot" id="dot1"></span>
+        <span class="step-dot" id="dot2"></span>
+        <span class="step-dot" id="dot3"></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </section>
+
+    <!-- Step 1: Select Fee -->
+    <section class="payment-step active" id="step1">
+      <h2>Select Fee Type</h2>
+      <div id="feeOptionsContainer">
+        <p class="muted">Loading fees...</p>
+      </div>
+      <button class="btn primary" id="next-step1" disabled>Next</button>
+    </section>
+
+    <!-- Step 2: Confirm & Pay -->
+    <section class="payment-step" id="step2">
+      <h2>Confirm & Pay</h2>
+      <div id="manualStudentFields" class="hidden" style="margin-bottom:16px;">
+        <p class="muted" style="margin-bottom:10px;">Enter your details (or <a href="student-profile.html">sign in</a>
+          to auto-fill)</p>
+        <div class="grid two" style="gap:10px;">
+          <div><label for="manualStudentId">Student ID</label><input type="text" id="manualStudentId"
+              placeholder="e.g. GEC2024001"></div>
+          <div><label for="manualName">Name</label><input type="text" id="manualName" placeholder="Full name"></div>
+          <div><label for="manualEmail">Email</label><input type="email" id="manualEmail"
+              placeholder="email@example.com"></div>
+          <div><label for="manualPhone">Phone</label><input type="tel" id="manualPhone" placeholder="10-digit mobile">
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="studentName">
+      <input type="hidden" id="studentId">
+      <input type="hidden" id="email">
+      <input type="hidden" id="phone">
+      <div class="upi-box">
+        <p style="margin:0; color: var(--primary); font-weight: 600;">Pay to Hostel Admin (UPI)</p>
+        <p class="upi-id" id="displayUpiId">—</p>
+        <p class="muted" style="margin:4px 0 0 0; font-size:0.9rem;">Amount: ₹<span id="displayAmount">0</span> • Add
+          note: <span id="displayNote">—</span></p>
+        <button type="button" class="copy-btn" id="copyUpi">Copy UPI ID</button>
+      </div>
+      <div class="summary-row"><span class="muted">Paying as</span><span id="summaryName">—</span></div>
+      <div class="summary-row"><span class="muted">Student ID</span><span id="summaryId">—</span></div>
+      <div class="summary-row"><span class="muted">Fee</span><span id="summaryFee">—</span></div>
+      <div class="summary-row summary-total"><span>Total</span><span id="summaryTotal">₹0</span></div>
+      <div style="margin-top:16px;">
+        <label for="paymentScreenshot" class="muted" style="font-size:0.9rem;">Upload payment screenshot
+          (optional)</label>
+        <input type="file" id="paymentScreenshot" accept="image/*" style="margin-top:6px;">
+        <small class="muted" style="display:block; margin-top:4px;">Helps admin verify faster</small>
+      </div>
+      <button type="button" class="btn primary" id="confirmPay" style="margin-top:20px; width:100%;">I’ve paid —
+        Submit</button>
+      <button type="button" class="btn" id="back-step2">Back</button>
+    </section>
+
+    <!-- Step 3: Receipt -->
+    <section class="payment-step" id="step3">
+      <h2>Payment Submitted</h2>
+      <div class="card">
+        <div class="receipt-preview" id="finalReceipt"></div>
+        <div style="text-align:center; margin:20px 0;">
+          <button class="btn primary" id="downloadReceipt">Download PDF</button>
+          <button class="btn" id="printReceipt">Print</button>
+          <button class="btn" id="newPayment">Pay again</button>
+        </div>
+        <p class="muted" style="text-align:center;">Transaction ID: <span id="transactionId">—</span></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; <span id="year"></span> Government Engineering College Hostel</span>
+    </div>
+  </footer>
+
+  <script src="payment.js"></script>
+</body>
+
+</html>

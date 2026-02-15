@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile • Government Engineering College Hostel</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://i.ibb.co/Lh5yXwk8/download-1.png">
+  <style>
+    .auth-container {
+      max-width: 520px;
+      margin: 48px auto;
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 4px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 14px 20px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition);
+    }
+
+    .auth-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    .auth-tab:hover {
+      color: var(--text);
+      background: rgba(50, 70, 110, 0.15);
+    }
+
+    .auth-form {
+      display: none;
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .profile-dashboard {
+      display: none;
+    }
+
+    .profile-dashboard.active {
+      display: block;
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 28px;
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+
+    .profile-header:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow);
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 800;
+      color: #052e16;
+      margin: 0 auto 15px;
+      box-shadow: 0 0 30px var(--primary-glow);
+      transition: transform var(--transition-spring);
+    }
+
+    .profile-avatar:hover {
+      transform: scale(1.08);
+    }
+
+    .profile-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .info-card {
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .info-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .info-card:hover::before {
+      opacity: 1;
+    }
+
+    .info-card h3 {
+      color: var(--primary-light);
+      margin-bottom: 16px;
+    }
+
+    .info-card h3::before {
+      display: none;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(50, 70, 110, 0.2);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .info-value {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .status-active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-inactive {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      background: rgba(55, 65, 81, 0.5);
+      border-color: rgba(55, 65, 81, 0.8);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(75, 85, 99, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #f87171;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #ef4444;
+      transform: translateY(-1px);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-logo" alt="GEC Hostel" src="https://i.ibb.co/Lh5yXwk8/download-1.png" />
+        <span class="brand-title">GEC Samastipur Hostel</span>
+      </div>
+      <nav class="nav">
+        <a href="home.html" class="nav-link">Home</a>
+        <a href="hostel.html" class="nav-link">Hostel</a>
+        <a href="payment.html" class="nav-link">Payment</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="student-profile.html" class="nav-link active">Profile</a>
+        <a href="admin.html" class="nav-link">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Authentication Section -->
+    <div id="authSection" class="auth-container">
+      <div class="card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="signin" onclick="switchTab('signin')">Sign In</button>
+          <button class="auth-tab" data-tab="signup" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <form id="signinForm" class="auth-form active" onsubmit="handleSignIn(event)">
+          <h2>Student Sign In</h2>
+          <div class="form-group">
+            <label for="signinStudentId">Student ID</label>
+            <input type="text" id="signinStudentId" required placeholder="Enter your Student ID">
+          </div>
+          <div class="form-group">
+            <label for="signinPassword">Password</label>
+            <input type="password" id="signinPassword" required placeholder="Enter your password">
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="rememberMe"> Remember me
+            </label>
+          </div>
+          <button type="submit" class="btn primary">Sign In</button>
+          <p id="signinMessage" class="muted"></p>
+        </form>
+
+        <!-- Sign Up Form -->
+        <form id="signupForm" class="auth-form" onsubmit="handleSignUp(event)" enctype="multipart/form-data">
+          <h2>Student Registration</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" required placeholder="First Name">
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" required placeholder="Last Name">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentId">Student ID</label>
+              <input type="text" id="studentId" required placeholder="Enter your Student ID">
+            </div>
+            <div class="form-group">
+              <label for="rollNumber">Roll Number</label>
+              <input type="text" id="rollNumber" required placeholder="Enter your Roll Number">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="batch">Batch</label>
+              <select id="batch" required>
+                <option value="">Select Batch</option>
+                <option value="2020">2020</option>
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="branch">Branch</label>
+              <select id="branch" required>
+                <option value="">Select Branch</option>
+                <option value="CSE">Computer Science Engineering</option>
+                <option value="ECE">Electronics & Communication Engineering</option>
+                <option value="EE">Electrical Engineering</option>
+                <option value="ME">Mechanical Engineering</option>
+                <option value="CE">Civil Engineering</option>
+                <option value="IT">Information Technology</option>
+                <option value="AE">Aerospace Engineering</option>
+                <option value="CHE">Chemical Engineering</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" required placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" required placeholder="Enter your phone number">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hostelType">Hostel Type</label>
+              <select id="hostelType" required>
+                <option value="">Select Hostel Type</option>
+                <option value="boys">Boys Hostel</option>
+                <option value="girls">Girls Hostel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="roomNumber">Room Number</label>
+              <input type="text" id="roomNumber" required placeholder="e.g., 401-A, 302-B">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="roomPreference">Room Preference</label>
+            <select id="roomPreference" required>
+              <option value="">Select Room Type</option>
+              <option value="single">Single</option>
+              <option value="triple">Triple</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="studentPhoto">Upload Photo</label>
+            <input type="file" id="studentPhoto" accept="image/*" onchange="previewPhoto(event)">
+            <div id="photoPreview" class="photo-preview" style="display: none;">
+              <img id="previewImg"
+                style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-top: 10px;">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" required placeholder="Create password" minlength="6">
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" id="confirmPassword" required placeholder="Confirm password" minlength="6">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="agreeTerms" required> I agree to the <a href="#"
+                style="color: var(--primary);">Terms and Conditions</a>
+            </label>
+          </div>
+          <button type="submit" class="btn primary">Create Account</button>
+          <p id="signupMessage" class="muted"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Profile Dashboard -->
+    <div id="profileDashboard" class="profile-dashboard">
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">JD</div>
+        <h2 id="profileName">John Doe</h2>
+        <p id="profileStudentId">Student ID: 2024001</p>
+        <span class="status-badge status-active" id="profileStatus">Active</span>
+      </div>
+
+      <div class="profile-info">
+        <div class="info-card">
+          <h3>📋 Personal Information</h3>
+          <div class="info-item">
+            <span class="info-label">Full Name:</span>
+            <span class="info-value" id="infoFullName">John Doe</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Student ID:</span>
+            <span class="info-value" id="infoStudentId">2024001</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Roll Number:</span>
+            <span class="info-value" id="infoRollNumber">2024CS001</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value" id="infoEmail">john.doe@student.gecsamastipur.edu.in</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Phone:</span>
+            <span class="info-value" id="infoPhone">+91-98765-43210</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>🎓 Academic Information</h3>
+          <div class="info-item">
+            <span class="info-label">Batch:</span>
+            <span class="info-value" id="infoBatch">2024</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Branch:</span>
+            <span class="info-value" id="infoBranch">Computer Science Engineering</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Academic Year:</span>
+            <span class="info-value" id="infoAcademicYearAcad">2024-25</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>🏠 Hostel Information</h3>
+          <div class="info-item">
+            <span class="info-label">Hostel Type:</span>
+            <span class="info-value" id="infoHostelType">Boys Hostel</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Room Number:</span>
+            <span class="info-value" id="infoRoomNumber">401-A</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Floor:</span>
+            <span class="info-value" id="infoFloor">4th Floor</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Room Type:</span>
+            <span class="info-value" id="infoRoomType">Single</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>💰 Financial Information</h3>
+          <div class="info-item">
+            <span class="info-label">Hostel Fees:</span>
+            <span class="info-value" id="infoHostelFees">₹15,000</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Mess Fees:</span>
+            <span class="info-value" id="infoMessFees">₹8,000</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Total Due:</span>
+            <span class="info-value" id="infoTotalDue">₹23,000</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Payment Status:</span>
+            <span class="info-value" id="infoPaymentStatus">Pending</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>📅 Important Dates</h3>
+          <div class="info-item">
+            <span class="info-label">Check-in Date:</span>
+            <span class="info-value" id="infoCheckIn">15 Aug 2024</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Payment:</span>
+            <span class="info-value" id="infoLastPayment">Not Paid</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Next Due Date:</span>
+            <span class="info-value" id="infoNextDue">30 Sep 2024</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Academic Year:</span>
+            <span class="info-value" id="infoAcademicYear">2024-25</span>
+          </div>
+        </div>
+
+        <div class="info-card" id="myPaymentsCard">
+          <h3>💳 My Payments</h3>
+          <div id="myPaymentsList">
+            <p class="muted" style="margin:0;">No payments yet. <a href="payment.html">Pay fees</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <a href="payment.html" class="btn primary">Pay Fees</a>
+        <button class="btn btn-secondary" onclick="editProfile()">Edit Profile</button>
+        <button class="btn btn-secondary" onclick="viewRoomDetails()">Room Details</button>
+        <button class="btn btn-secondary" onclick="viewMessMenu()">Mess Menu</button>
+        <button class="btn btn-danger" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; <span id="year"></span> Government Engineering College Samastipur Hostel</span>
+    </div>
+  </footer>
+
+  <script>
+    // Check if user is already logged in
+    window.onload = function () {
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        showProfileDashboard(JSON.parse(loggedInUser));
+      }
+    };
+
+    // Auto-update payment info when returning to page (e.g. after paying) or when payments change in another tab (e.g. admin confirmed)
+    window.addEventListener('pageshow', function () {
+      var loggedIn = localStorage.getItem('loggedInUser');
+      var dash = document.getElementById('profileDashboard');
+      if (loggedIn && dash && dash.classList.contains('active')) {
+        updatePaymentInfo(JSON.parse(loggedIn));
+      }
+    });
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'payments') {
+        var loggedIn = localStorage.getItem('loggedInUser');
+        var dash = document.getElementById('profileDashboard');
+        if (loggedIn && dash && dash.classList.contains('active')) {
+          updatePaymentInfo(JSON.parse(loggedIn));
+        }
+      }
+    });
+
+    function switchTab(tab) {
+      // Remove active class from all tabs and forms
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+      // Add active class to selected tab and form
+      const tabEl = document.querySelector('.auth-tab[data-tab="' + tab + '"]');
+      if (tabEl) tabEl.classList.add('active');
+      const formEl = document.getElementById(tab + 'Form');
+      if (formEl) formEl.classList.add('active');
+    }
+
+    function handleSignIn(event) {
+      event.preventDefault();
+      const studentId = document.getElementById('signinStudentId').value;
+      const password = document.getElementById('signinPassword').value;
+      const messageEl = document.getElementById('signinMessage');
+
+      // Simple validation (in real app, this would be server-side)
+      if (studentId && password) {
+        // Check if user exists in localStorage
+        const users = JSON.parse(localStorage.getItem('hostelUsers') || '[]');
+        const user = users.find(u => u.studentId === studentId && u.password === password);
+
+        if (user) {
+          localStorage.setItem('loggedInUser', JSON.stringify(user));
+          var signInLogs = JSON.parse(localStorage.getItem('sign_in_logs') || '[]');
+          signInLogs.push({ time: new Date().toISOString(), studentId: studentId, success: true });
+          localStorage.setItem('sign_in_logs', JSON.stringify(signInLogs));
+          showProfileDashboard(user);
+          messageEl.textContent = 'Login successful!';
+          messageEl.style.color = 'var(--primary)';
+        } else {
+          var signInLogs = JSON.parse(localStorage.getItem('sign_in_logs') || '[]');
+          signInLogs.push({ time: new Date().toISOString(), studentId: studentId || null, success: false });
+          localStorage.setItem('sign_in_logs', JSON.stringify(signInLogs));
+          messageEl.textContent = 'Invalid credentials. Please try again.';
+          messageEl.style.color = '#ef4444';
+        }
+      } else {
+        messageEl.textContent = 'Please fill in all fields.';
+        messageEl.style.color = '#ef4444';
+      }
+    }
+
+    async function handleSignUp(event) {
+      event.preventDefault();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const messageEl = document.getElementById('signupMessage');
+
+      if (password !== confirmPassword) {
+        messageEl.textContent = 'Passwords do not match.';
+        messageEl.style.color = '#ef4444';
+        return;
+      }
+
+      const photoData = await getPhotoData();
+      const userData = {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        studentId: document.getElementById('studentId').value,
+        rollNumber: document.getElementById('rollNumber').value,
+        batch: document.getElementById('batch').value,
+        branch: document.getElementById('branch').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        hostelType: document.getElementById('hostelType').value,
+        roomNumber: document.getElementById('roomNumber').value,
+        roomPreference: document.getElementById('roomPreference').value,
+        password: password,
+        photo: photoData,
+        registrationDate: new Date().toISOString()
+      };
+
+      // Check for duplicate Student ID
+      const users = JSON.parse(localStorage.getItem('hostelUsers') || '[]');
+      const existingUser = users.find(u => u.studentId === userData.studentId);
+      if (existingUser) {
+        messageEl.textContent = 'A student with this ID already exists. Please sign in instead.';
+        messageEl.style.color = '#ef4444';
+        return;
+      }
+
+      // Save user to localStorage
+      users.push(userData);
+      localStorage.setItem('hostelUsers', JSON.stringify(users));
+
+      // Log signup for admin
+      const signups = JSON.parse(localStorage.getItem('signups') || '[]');
+      signups.push({ time: new Date().toISOString(), studentId: userData.studentId, email: userData.email });
+      localStorage.setItem('signups', JSON.stringify(signups));
+
+      messageEl.textContent = 'Account created successfully! Please sign in.';
+      messageEl.style.color = 'var(--primary)';
+
+      // Switch to sign in tab
+      setTimeout(() => {
+        switchTab('signin');
+        document.getElementById('signinStudentId').value = userData.studentId;
+      }, 1000);
+    }
+
+    function previewPhoto(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('previewImg').src = e.target.result;
+          document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function getPhotoData() {
+      const fileInput = document.getElementById('studentPhoto');
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            resolve(e.target.result);
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+      return Promise.resolve(null);
+    }
+
+    function getPaymentsForStudent(studentId) {
+      try {
+        const raw = localStorage.getItem('payments');
+        const list = raw ? JSON.parse(raw) : [];
+        return list.filter(function (p) { return (p.studentId || '') === (studentId || ''); });
+      } catch (e) { return []; }
+    }
+
+    function updatePaymentInfo(user) {
+      var payments = getPaymentsForStudent(user.studentId);
+      var completed = payments.filter(function (p) { return p.status === 'completed'; });
+      var pending = payments.filter(function (p) { return p.status === 'pending'; });
+      var statusEl = document.getElementById('infoPaymentStatus');
+      var lastEl = document.getElementById('infoLastPayment');
+      if (statusEl) {
+        if (completed.length > 0) {
+          statusEl.textContent = 'Paid';
+          statusEl.className = 'info-value status-active';
+        } else if (pending.length > 0) {
+          statusEl.textContent = 'Pending';
+          statusEl.className = 'info-value status-pending';
+        } else {
+          statusEl.textContent = payments.length > 0 ? 'Rejected' : 'No payments';
+          statusEl.className = 'info-value status-inactive';
+        }
+      }
+      if (lastEl) {
+        if (completed.length > 0) {
+          var last = completed.sort(function (a, b) {
+            return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+          })[0];
+          var amt = last.amount != null ? Number(last.amount).toLocaleString() : '0';
+          var date = last.timestamp ? new Date(last.timestamp).toLocaleDateString() : '';
+          lastEl.textContent = '₹' + amt + (date ? ' on ' + date : '');
+        } else {
+          lastEl.textContent = 'Not Paid';
+        }
+      }
+      var fees = {};
+      try {
+        var f = localStorage.getItem('fees');
+        if (f) fees = JSON.parse(f);
+      } catch (e) { }
+      var num = function (s) { return parseInt(String(s).replace(/[₹,\s]/g, '').split('/')[0]) || 0; };
+      var hostelFee = num(fees.single) || 18000;
+      if ((user.roomPreference || '').toLowerCase() === 'triple') hostelFee = num(fees.triple) || 15000;
+      var messFee = num(fees.mess) || 3500;
+      var hostelEl = document.getElementById('infoHostelFees');
+      var messEl = document.getElementById('infoMessFees');
+      var totalEl = document.getElementById('infoTotalDue');
+      if (hostelEl) hostelEl.textContent = '₹' + hostelFee.toLocaleString();
+      if (messEl) messEl.textContent = '₹' + messFee.toLocaleString();
+      if (totalEl) totalEl.textContent = '₹' + (hostelFee + messFee).toLocaleString();
+      renderMyPayments(payments);
+    }
+
+    function renderMyPayments(payments) {
+      var container = document.getElementById('myPaymentsList');
+      if (!container) return;
+      if (!payments || payments.length === 0) {
+        container.innerHTML = '<p class="muted" style="margin:0;">No payments yet. <a href="payment.html">Pay fees</a></p>';
+        return;
+      }
+      var sorted = payments.slice().sort(function (a, b) {
+        return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+      });
+      var html = '<ul class="list" style="margin:0; padding:0; list-style:none;">';
+      sorted.slice(0, 8).forEach(function (p) {
+        var date = p.timestamp ? new Date(p.timestamp).toLocaleDateString() : '—';
+        var amt = '₹' + (p.amount != null ? Number(p.amount).toLocaleString() : '0');
+        var type = (p.feeType || '—').replace(/_/g, ' ');
+        var status = (p.status || '—');
+        var statusClass = status === 'completed' ? 'status-active' : status === 'pending' ? 'status-pending' : 'status-inactive';
+        html += '<li style="padding:10px 0; border-bottom:1px dashed var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">';
+        html += '<span><strong>' + amt + '</strong> ' + type + '</span>';
+        html += '<span><span class="status-badge ' + statusClass + '">' + status + '</span> ' + date + '</span>';
+        html += '</li>';
+      });
+      html += '</ul>';
+      if (sorted.length > 8) html += '<p class="muted" style="margin-top:8px; margin-bottom:0;">Showing latest 8. <a href="payment.html">Pay fees</a></p>';
+      else html += '<p class="muted" style="margin-top:8px; margin-bottom:0;"><a href="payment.html">Pay fees</a></p>';
+      container.innerHTML = html;
+    }
+
+    function showProfileDashboard(user) {
+      document.getElementById('authSection').classList.add('hidden');
+      document.getElementById('profileDashboard').classList.add('active');
+
+      // Update profile information
+      document.getElementById('profileName').textContent = `${user.firstName} ${user.lastName}`;
+      document.getElementById('profileStudentId').textContent = `Student ID: ${user.studentId}`;
+
+      // Update avatar with photo if available
+      const avatar = document.getElementById('profileAvatar');
+      if (user.photo) {
+        avatar.innerHTML = `<img src="${user.photo}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+      } else {
+        avatar.textContent = user.firstName[0] + user.lastName[0];
+      }
+
+      // Update personal information
+      document.getElementById('infoFullName').textContent = `${user.firstName} ${user.lastName}`;
+      document.getElementById('infoStudentId').textContent = user.studentId;
+      document.getElementById('infoRollNumber').textContent = user.rollNumber || 'N/A';
+      document.getElementById('infoEmail').textContent = user.email;
+      document.getElementById('infoPhone').textContent = user.phone;
+
+      // Update academic information
+      document.getElementById('infoBatch').textContent = user.batch || 'N/A';
+      document.getElementById('infoBranch').textContent = user.branch || 'N/A';
+
+      // Update hostel information
+      document.getElementById('infoHostelType').textContent = user.hostelType === 'boys' ? 'Boys Hostel' : 'Girls Hostel';
+      document.getElementById('infoRoomNumber').textContent = user.roomNumber || 'N/A';
+      document.getElementById('infoRoomType').textContent = user.roomPreference || 'N/A';
+
+      // Compute floor from room number (e.g. "401-A" -> "4th Floor")
+      var floorEl = document.getElementById('infoFloor');
+      if (floorEl && user.roomNumber) {
+        var floorNum = parseInt(user.roomNumber.charAt(0));
+        if (!isNaN(floorNum)) {
+          var suffix = floorNum === 1 ? 'st' : floorNum === 2 ? 'nd' : floorNum === 3 ? 'rd' : 'th';
+          floorEl.textContent = floorNum + suffix + ' Floor';
+        } else {
+          floorEl.textContent = 'N/A';
+        }
+      }
+
+      // Compute academic year from batch (e.g. "2024" -> "2024-25")
+      var acadYearEl1 = document.getElementById('infoAcademicYearAcad');
+      var acadYearEl2 = document.getElementById('infoAcademicYear');
+      if (user.batch) {
+        var batchNum = parseInt(user.batch);
+        var acadStr = !isNaN(batchNum) ? batchNum + '-' + String(batchNum + 1).slice(-2) : user.batch;
+        if (acadYearEl1) acadYearEl1.textContent = acadStr;
+        if (acadYearEl2) acadYearEl2.textContent = acadStr;
+      }
+
+      // Payment info from localStorage (stays in sync with admin confirmations)
+      updatePaymentInfo(user);
+    }
+
+    function editProfile() {
+      alert('Edit profile functionality will be implemented soon!');
+    }
+
+    function viewRoomDetails() {
+      alert('Room details functionality will be implemented soon!');
+    }
+
+    function viewMessMenu() {
+      alert('Mess menu functionality will be implemented soon!');
+    }
+
+    function logout() {
+      localStorage.removeItem('loggedInUser');
+      document.getElementById('authSection').classList.remove('hidden');
+      document.getElementById('profileDashboard').classList.remove('active');
+
+      // Clear forms
+      document.getElementById('signinForm').reset();
+      document.getElementById('signupForm').reset();
+    }
+
+    // Update year in footer
+    (function () {
+      var y = document.getElementById('year');
+      if (y) {
+        y.textContent = String(new Date().getFullYear());
+      }
+    })();
+  </script>
+</body>
+
+</html>

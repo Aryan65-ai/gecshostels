@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEC Hostel — Government Engineering College Samastipur</title>
+  <meta name="description"
+    content="Official hostel management portal for Government Engineering College, Samastipur. Check room availability, pay fees, and manage your hostel life.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="https://i.ibb.co/Lh5yXwk8/download-1.png">
+  <style>
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 48px 20px 36px;
+      position: relative;
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.3em;
+    }
+
+    .hero .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 540px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-actions .btn {
+      padding: 14px 28px;
+      font-size: 0.95rem;
+    }
+
+    /* Quick Stats Bar */
+    .quick-stats {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 0 0 24px 0;
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+    }
+
+    .quick-stat {
+      flex: 1;
+      text-align: center;
+      padding: 18px 12px;
+      border-right: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    .quick-stat:last-child {
+      border-right: none;
+    }
+
+    .quick-stat:hover {
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .quick-stat .qs-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .quick-stat .qs-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* Section icons in h2 */
+    .section-icon {
+      font-size: 1.1em;
+      margin-right: 4px;
+    }
+
+    /* Notice item hover */
+    .notice-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(50, 70, 110, 0.2);
+      transition: all var(--transition);
+    }
+
+    .notice-item:last-child {
+      border-bottom: none;
+    }
+
+    .notice-item:hover {
+      padding-left: 8px;
+    }
+
+    .notice-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+      margin-top: 7px;
+      box-shadow: 0 0 6px var(--primary-glow);
+    }
+
+    .notice-text {
+      flex: 1;
+    }
+
+    /* Fee card icons */
+    .fee-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 1.6rem;
+      }
+
+      .hero .subtitle {
+        font-size: 0.9rem;
+      }
+
+      .quick-stats {
+        flex-direction: column;
+      }
+
+      .quick-stat {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 14px;
+      }
+
+      .quick-stat:last-child {
+        border-bottom: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-logo" alt="GEC Hostel" src="https://i.ibb.co/Lh5yXwk8/download-1.png" />
+        <span class="brand-title">GEC Samastipur Hostel</span>
+      </div>
+      <nav class="nav">
+        <a href="home.html" class="nav-link active">Home</a>
+        <a href="hostel.html" class="nav-link">Hostel</a>
+        <a href="payment.html" class="nav-link">Payment</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="student-profile.html" class="nav-link">Profile</a>
+        <a href="admin.html" class="nav-link">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Government Engineering College<br>Hostel Management</h1>
+      <p class="subtitle">Your one-stop portal for hostel room booking, fee payments, notices, and complaint resolution.
+      </p>
+      <div class="hero-actions">
+        <a href="student-profile.html" class="btn primary">Student Login →</a>
+        <a href="payment.html" class="btn">Pay Fees</a>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats" id="quickStats">
+      <div class="quick-stat">
+        <div class="qs-value" id="qsRooms">—</div>
+        <div class="qs-label">Available Rooms</div>
+      </div>
+      <div class="quick-stat">
+        <div class="qs-value" id="qsStudents">—</div>
+        <div class="qs-label">Registered Students</div>
+      </div>
+      <div class="quick-stat">
+        <div class="qs-value" id="qsNotices">—</div>
+        <div class="qs-label">Active Notices</div>
+      </div>
+      <div class="quick-stat">
+        <div class="qs-value">4</div>
+        <div class="qs-label">Floors</div>
+      </div>
+    </div>
+
+    <!-- Notices -->
+    <section id="notices" class="card">
+      <h2><span class="section-icon">📢</span> Notices</h2>
+      <div id="noticeList"></div>
+    </section>
+
+    <!-- Room Availability -->
+    <section id="rooms" class="card">
+      <h2><span class="section-icon">🏠</span> Room Availability</h2>
+      <div class="grid two">
+        <div>
+          <label for="floorSelect">Select Floor</label>
+          <select id="floorSelect"></select>
+        </div>
+        <div>
+          <label for="roomTypeSelect">Room Type</label>
+          <select id="roomTypeSelect">
+            <option value="any">All Types</option>
+            <option value="single">Single</option>
+            <option value="triple">Triple</option>
+          </select>
+        </div>
+      </div>
+      <div id="roomResults" class="room-results"></div>
+    </section>
+
+    <!-- Fees -->
+    <section id="fees" class="card">
+      <h2><span class="section-icon">💰</span> Fee Structure</h2>
+      <div class="grid three">
+        <div class="fee-card">
+          <span class="fee-icon">🍽️</span>
+          <h3>Mess Fee</h3>
+          <p id="messFeesAmount" class="fee-amount">—</p>
+          <p class="muted">Per month</p>
+        </div>
+        <div class="fee-card">
+          <span class="fee-icon">🛏️</span>
+          <h3>Hostel Charge</h3>
+          <ul id="hostelFeesList" class="list"></ul>
+          <p class="muted" style="margin-top:4px;">Per year</p>
+        </div>
+        <div class="fee-card">
+          <span class="fee-icon">🔒</span>
+          <h3>Security Deposit</h3>
+          <p id="securityDepositAmount" class="fee-amount">₹ 5,000</p>
+          <p class="muted">One-time (refundable)</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="payment.html" class="btn primary">Pay Hostel Fees Online →</a>
+      </div>
+    </section>
+
+    <!-- i-Complain -->
+    <section id="complain" class="card">
+      <h2><span class="section-icon">📝</span> i-Complain</h2>
+      <p class="muted" style="margin-bottom:16px;">Submit your hostel-related complaints here. We'll respond within 48
+        hours.</p>
+      <form id="complainForm" class="form">
+        <div class="grid two">
+          <div>
+            <label for="complainStudentId">Student ID</label>
+            <input type="text" id="complainStudentId" placeholder="Enter your Student ID" required>
+          </div>
+          <div>
+            <label for="complainCategory">Category</label>
+            <select id="complainCategory" required>
+              <option value="maintenance">🔧 Maintenance</option>
+              <option value="mess">🍽️ Mess</option>
+              <option value="security">🛡️ Security</option>
+              <option value="other">📋 Other</option>
+            </select>
+          </div>
+        </div>
+        <label for="complainText">Describe your issue</label>
+        <textarea id="complainText" rows="4" placeholder="Please describe your issue in detail…" required></textarea>
+        <div style="margin-top:12px;">
+          <button type="submit" class="btn primary">Submit Complaint →</button>
+        </div>
+        <p id="complainMsg" class="muted" style="margin-top:12px;"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; <span id="year"></span> Government Engineering College Samastipur — Hostel Management System</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
