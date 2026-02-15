@@ -19,84 +19,6 @@
   const copyUpi = document.getElementById('copyUpi');
   const paymentScreenshot = document.getElementById('paymentScreenshot');
 
-  function getStore(key, fallback) {
-    try {
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : fallback;
-    } catch (e) { return fallback; }
-  }
-  function setStore(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { }
-  }
-  function appendLog(key, entry) {
-    const list = getStore(key, []);
-    list.push({ time: new Date().toISOString(), ...entry });
-    setStore(key, list);
-  }
-
-  function getLoggedInStudent() {
-    try {
-      const raw = localStorage.getItem('loggedInUser');
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
-  }
-
-  function loadFeesFromAdmin() {
-    const fees = getStore('fees', {
-      mess: '₹ 3,500 / month',
-      single: '₹ 18,000 / year',
-      triple: '₹ 15,000 / year'
-    });
-    const num = (s) => parseInt(String(s).replace(/[₹,\s]/g, '').split('/')[0]) || 0;
-    return {
-      mess: num(fees.mess) || 3500,
-      single: num(fees.single) || 18000,
-      triple: num(fees.triple) || 15000,
-      security: 5000
-    };
-  }
-
-  function renderFeeOptions() {
-    const fees = loadFeesFromAdmin();
-    // Determine hostel charge based on logged-in student's room preference
-    const user = getLoggedInStudent();
-    let hostelAmount = fees.single; // default
-    let hostelLabel = 'Hostel Charge';
-    if (user && user.roomPreference) {
-      const pref = user.roomPreference.toLowerCase();
-      if (pref === 'triple') hostelAmount = fees.triple;
-      else hostelAmount = fees.single;
-      hostelLabel = 'Hostel Charge (' + pref.charAt(0).toUpperCase() + pref.slice(1) + ' Room)';
-    }
-    const options = [
-      { id: 'mess', title: 'Mess Fee', amount: fees.mess, period: 'Per month', dataFee: 'mess_fee', dataAmount: fees.mess },
-      { id: 'hostel', title: hostelLabel, amount: hostelAmount, period: 'Per year', dataFee: 'hostel_charge', dataAmount: hostelAmount },
-      { id: 'security', title: 'Security Deposit', amount: fees.security, period: 'One-time (refundable)', dataFee: 'security_deposit', dataAmount: fees.security }
-    ];
-    feeOptionsContainer.innerHTML = options.map(o => `
-      <div class="fee-option" data-fee="${o.dataFee}" data-amount="${o.dataAmount}">
-        <div>
-          <h3>${o.title}</h3>
-          <span class="period">${o.period}</span>
-        </div>
-        <span class="amount">₹${o.amount.toLocaleString()}</span>
-      </div>
-    `).join('');
-    document.querySelectorAll('.fee-option').forEach(opt => {
-      opt.addEventListener('click', () => selectFee(opt));
-    });
-  }
-
-  function selectFee(option) {
-    document.querySelectorAll('.fee-option').forEach(o => o.classList.remove('selected'));
-    option.classList.add('selected');
-    selectedFee = {
-      type: option.dataset.fee,
-      amount: parseInt(option.dataset.amount, 10)
-    };
-    nextStep1.disabled = false;
-  }
-
   function showStep(stepNum) {
     currentStep = stepNum;
     steps.forEach((s, i) => s.classList.toggle('active', i + 1 === stepNum));
@@ -115,6 +37,59 @@
     }
   }
 
+  function renderFeeOptions() {
+    const fees = API.getFees(); // Uses API layer
+    const user = API.getCurrentUser(); // Uses API layer
+
+    let hostelAmount = 18000; // Default single
+    // Parse fees if they are strings like "₹ 18,000 / year"
+    const parseFee = (str) => parseInt(String(str).replace(/[₹,\s]/g, '').split('/')[0]) || 0;
+    const singleFee = typeof fees.single === 'number' ? fees.single : parseFee(fees.single);
+    const tripleFee = typeof fees.triple === 'number' ? fees.triple : parseFee(fees.triple);
+    const messFee = typeof fees.mess === 'number' ? fees.mess : parseFee(fees.mess);
+    const securityFee = 5000;
+
+    let hostelLabel = 'Hostel Charge';
+    hostelAmount = singleFee;
+
+    if (user && user.roomPreference) {
+      const pref = user.roomPreference.toLowerCase();
+      if (pref === 'triple') hostelAmount = tripleFee;
+      else hostelAmount = singleFee;
+      hostelLabel = 'Hostel Charge (' + pref.charAt(0).toUpperCase() + pref.slice(1) + ' Room)';
+    }
+
+    const options = [
+      { id: 'mess', title: 'Mess Fee', amount: messFee, period: 'Per month', dataFee: 'mess_fee' },
+      { id: 'hostel', title: hostelLabel, amount: hostelAmount, period: 'Per year', dataFee: 'hostel_charge' },
+      { id: 'security', title: 'Security Deposit', amount: securityFee, period: 'One-time (refundable)', dataFee: 'security_deposit' }
+    ];
+
+    feeOptionsContainer.innerHTML = options.map(o => `
+      <div class="fee-option" data-fee="${o.dataFee}" data-amount="${o.amount}">
+        <div>
+          <h3>${o.title}</h3>
+          <span class="period">${o.period}</span>
+        </div>
+        <span class="amount">₹${o.amount.toLocaleString()}</span>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.fee-option').forEach(opt => {
+      opt.addEventListener('click', () => selectFee(opt));
+    });
+  }
+
+  function selectFee(option) {
+    document.querySelectorAll('.fee-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedFee = {
+      type: option.dataset.fee,
+      amount: parseInt(option.dataset.amount, 10)
+    };
+    nextStep1.disabled = false;
+  }
+
   function updateStep2Summary() {
     let name = document.getElementById('studentName').value || paymentData.studentName;
     let id = document.getElementById('studentId').value || paymentData.studentId;
@@ -129,22 +104,27 @@
   }
 
   function fillFromLoggedInUser() {
-    const user = getLoggedInStudent();
+    const user = API.getCurrentUser();
     if (user) {
-      const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.studentName || '';
+      // Handle both fullName (from DB) and firstName/lastName (old localStorage format)
+      const name = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || user.studentName || '';
+
       paymentData = {
         studentName: name,
-        studentId: user.studentId || '',
+        studentId: user.studentId || user.id || '', // Fallback to DB ID if studentId missing
         email: user.email || '',
         phone: user.phone || ''
       };
+
       document.getElementById('studentName').value = paymentData.studentName;
       document.getElementById('studentId').value = paymentData.studentId;
       document.getElementById('email').value = paymentData.email;
       document.getElementById('phone').value = paymentData.phone;
+
       studentBanner.classList.remove('hidden');
       studentNotLoggedIn.classList.add('hidden');
       manualStudentFields.classList.add('hidden');
+
       document.getElementById('bannerName').textContent = paymentData.studentName || 'Student';
       document.getElementById('bannerId').textContent = paymentData.studentId ? 'ID: ' + paymentData.studentId : '';
       return true;
@@ -152,15 +132,11 @@
     studentBanner.classList.add('hidden');
     studentNotLoggedIn.classList.remove('hidden');
     manualStudentFields.classList.remove('hidden');
-    document.getElementById('manualStudentId').value = '';
-    document.getElementById('manualName').value = '';
-    document.getElementById('manualEmail').value = '';
-    document.getElementById('manualPhone').value = '';
     return false;
   }
 
   function collectPaymentData() {
-    if (getLoggedInStudent()) {
+    if (API.getCurrentUser()) {
       paymentData.studentName = document.getElementById('studentName').value;
       paymentData.studentId = document.getElementById('studentId').value;
       paymentData.email = document.getElementById('email').value;
@@ -179,7 +155,6 @@
   }
 
   function generateReceiptHTML(txnId) {
-    const status = 'PENDING';
     return `
       <div class="receipt-header">
         <h2>GEC Hostel Payment</h2>
@@ -192,11 +167,10 @@
         <p><strong>Student:</strong> ${paymentData.studentName}</p>
         <p><strong>Student ID:</strong> ${paymentData.studentId}</p>
         <p><strong>Fee:</strong> ${selectedFee.type} — ₹${selectedFee.amount.toLocaleString()}</p>
-        <p><strong>UPI:</strong> ${ADMIN_UPI}</p>
-        <p><strong>Status:</strong> <span style="color:#ffa500;">${status}</span> (admin will confirm after verification)</p>
+        <p><strong>Status:</strong> <span style="color:#ffa500;">PENDING</span> (Verifying)</p>
       </div>
       <div class="receipt-footer">
-        Complete payment to admin UPI and wait for confirmation. For queries: hostel@gec.edu
+        Please allow 24-48 hours for admin verification.
       </div>
     `;
   }
@@ -216,10 +190,7 @@
     doc.text('Student: ' + paymentData.studentName, 20, 60);
     doc.text('Student ID: ' + paymentData.studentId, 20, 66);
     doc.text('Fee: ' + selectedFee.type + ' — ₹' + selectedFee.amount.toLocaleString(), 20, 76);
-    doc.text('UPI: ' + ADMIN_UPI, 20, 82);
-    doc.text('Status: PENDING (admin verification)', 20, 92);
-    doc.setFontSize(10);
-    doc.text('Thank you. Complete payment to admin UPI.', 105, 105, { align: 'center' });
+    doc.text('Status: PENDING', 20, 92);
     return doc;
   }
 
@@ -248,21 +219,6 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', updateStep2Summary);
       });
-      const manualId = document.getElementById('manualStudentId');
-      if (manualId) {
-        manualId.addEventListener('blur', function () {
-          const id = this.value.trim();
-          if (!id) return;
-          const users = getStore('hostelUsers', []);
-          const user = users.find(u => (u.studentId || '').toLowerCase() === id.toLowerCase());
-          if (user) {
-            document.getElementById('manualName').value = [user.firstName, user.lastName].filter(Boolean).join(' ') || '';
-            document.getElementById('manualEmail').value = user.email || '';
-            document.getElementById('manualPhone').value = user.phone || '';
-            updateStep2Summary();
-          }
-        });
-      }
     }
 
     let screenshotData = null;
@@ -275,18 +231,19 @@
           r.readAsDataURL(file);
         } else if (file) {
           paymentScreenshot.value = '';
-          if (file.size > 5 * 1024 * 1024) alert('File must be under 5MB');
+          alert('File must be an image under 5MB');
         }
       });
     }
 
-    confirmPay.addEventListener('click', function () {
+    confirmPay.addEventListener('click', async function () {
       collectPaymentData();
       if (!paymentData.studentName || !paymentData.studentId) {
-        alert('Please enter your name and student ID (or sign in at Student Profile).');
+        alert('Please enter your details.');
         return;
       }
       if (!selectedFee) return;
+
       const txnId = generateTxnId();
       const record = {
         transactionId: txnId,
@@ -297,33 +254,34 @@
         feeType: selectedFee.type,
         amount: selectedFee.amount,
         paymentMethod: 'UPI',
-        status: 'pending',
-        timestamp: new Date().toISOString(),
         adminUpiId: ADMIN_UPI,
-        screenshotUploaded: paymentScreenshot && paymentScreenshot.files.length > 0,
-        screenshotData: screenshotData || null
+        screenshotData: screenshotData // Sent to backend if small enough, otherwise handled there
       };
-      appendLog('payments', record);
-      finalReceipt.innerHTML = generateReceiptHTML(txnId);
-      transactionIdEl.textContent = txnId;
-      showStep(3);
+
+      // ── USE API TO SUBMIT ──
+      try {
+        confirmPay.disabled = true;
+        confirmPay.textContent = 'Processing...';
+        await API.submitPayment(record);
+
+        finalReceipt.innerHTML = generateReceiptHTML(txnId);
+        transactionIdEl.textContent = txnId;
+        showStep(3);
+      } catch (err) {
+        alert('Payment submission failed. Please try again.');
+        console.error(err);
+      } finally {
+        confirmPay.disabled = false;
+        confirmPay.textContent = 'Confirm Payment Submitted';
+      }
     });
 
     document.getElementById('downloadReceipt').addEventListener('click', () => {
       const txnId = transactionIdEl.textContent;
       const doc = generatePDFReceipt(txnId);
-      doc.save('receipt_' + (paymentData.studentId || '') + '_' + Date.now() + '.pdf');
+      doc.save('receipt_' + txnId + '.pdf');
     });
-    document.getElementById('printReceipt').addEventListener('click', () => {
-      const w = window.open('', '_blank');
-      w.document.write(`
-        <html><head><title>Receipt</title>
-        <style>body{font-family:sans-serif;margin:20px;}</style></head>
-        <body>${finalReceipt.innerHTML}</body></html>
-      `);
-      w.document.close();
-      w.print();
-    });
+
     document.getElementById('newPayment').addEventListener('click', () => {
       document.querySelectorAll('.fee-option').forEach(o => o.classList.remove('selected'));
       selectedFee = null;

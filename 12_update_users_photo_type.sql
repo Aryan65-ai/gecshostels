@@ -1,0 +1,1 @@
+ALTER TABLE users MODIFY photo_url LONGTEXT;

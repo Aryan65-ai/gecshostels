@@ -6,7 +6,12 @@ const router = Router();
 
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT id, full_name, email, phone, role, created_at FROM users WHERE id=?', [req.user.id]);
+    const [rows] = await pool.execute(
+      `SELECT id, full_name, email, phone, role, created_at,
+              student_id, roll_number, batch, branch, hostel_type, room_preference, assigned_room, photo_url
+       FROM users WHERE id=?`,
+      [req.user.id]
+    );
     if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(rows[0]);
   } catch (err) {
@@ -27,6 +32,21 @@ router.get('/bookings', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to load bookings' });
+  }
+});
+
+// Update profile
+router.put('/', requireAuth, async (req, res) => {
+  const { phone, room_preference, photo_url } = req.body;
+  try {
+    await pool.execute(
+      'UPDATE users SET phone=?, room_preference=?, photo_url=? WHERE id=?',
+      [phone, room_preference, photo_url, req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 
