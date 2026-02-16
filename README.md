@@ -10,10 +10,9 @@ Express server serves the API and the static site (HTML, CSS, JS). Node.js 18+ r
    copy .env.example .env
    ```
    Edit `.env`: set `DB_*` and `JWT_SECRET` if you use the database.
-3. **Database (optional):** To use auth, rooms, bookings, payments:
-   - Create DB and user (e.g. run `01_create_db_and_user.sql` in MySQL).
-   - Run in order: `02_schema.sql`, `03_indexes_constraints.sql`, `04_seed.sql`.
-   - SQL files are in the project root (same folder as `package.json`).
+3. **Database (Required for all features):**
+   - Import the complete schema: `mysql -u root < setup_database.sql`
+   - This creates the database, tables, and seed data (admin user, rooms, etc).
 
 ## Run locally
 

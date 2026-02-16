@@ -61,7 +61,7 @@
 
     // ── Data Loading ──
     async function loadData() {
-        await updateStats();
+        // Distinct calls - stats are updated within each loader now
         loadStudents();
         loadPayments();
         loadRooms();
@@ -114,28 +114,6 @@
     }
 
     // ── Stats ──
-    async function updateStats() {
-        try {
-            const stats = await API.getStats(); // { students, availableRooms, notices, ... }
-            setText('totalStudents', stats.students);
-            setText('statTotalRooms', stats.availableRooms + (stats.occupiedRooms || 0)); // simple approximation
-            setText('statAvailableRooms', stats.availableRooms);
-
-            // We can also fetch pending payments count
-            const payments = await API.adminGetAllPayments();
-            setText('pendingPayments', payments.filter(p => p.status === 'pending').length);
-
-            // Revenue calculation (local mainly, or simple sum)
-            const revenue = payments.filter(p => p.status === 'success' || p.status === 'completed')
-                .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-            setText('totalRevenue', '₹' + revenue.toLocaleString());
-            setText('totalTransactions', payments.length);
-
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
     function setText(id, txt) {
         const el = document.getElementById(id);
         if (el) el.textContent = txt;
@@ -149,6 +127,9 @@
 
         try {
             const students = await API.adminGetStudents();
+            // Update student count stats immediately
+            setText('totalStudents', students ? students.length : 0);
+
             if (!students || students.length === 0) {
                 table.innerHTML = '<p class="muted">No students found.</p>';
                 return;
@@ -165,9 +146,6 @@
             });
             html += '</tbody></table></div>';
             table.innerHTML = html;
-
-            // Update counts
-            setText('totalStudents', students.length);
         } catch (e) {
             table.innerHTML = '<p class="muted">Failed to load students.</p>';
         }
@@ -180,6 +158,16 @@
 
         try {
             const payments = await API.adminGetAllPayments(); // Returns mixed array
+
+            // ── Update Stats ──
+            const pendingCount = payments.filter(p => p.status === 'pending').length;
+            setText('pendingPayments', pendingCount);
+
+            const revenue = payments
+                .filter(p => ['success', 'confirmed', 'completed', 'paid'].includes(p.status))
+                .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            setText('totalRevenue', '₹' + revenue.toLocaleString());
+            setText('totalTransactions', payments.length);
 
             // Pending
             const pending = payments.filter(p => p.status === 'pending');
@@ -211,7 +199,10 @@
             // All Payments Table
             if (allContainer) {
                 let html = '<div class="admin-table-wrap admin-table-scroll"><table><thead><tr><th>Date</th><th>Student</th><th>Amount</th><th>Status</th></tr></thead><tbody>';
-                payments.forEach(p => {
+                // Sort by date desc
+                const sorted = [...payments].sort((a, b) => new Date(b.paid_at || b.timestamp || 0) - new Date(a.paid_at || a.timestamp || 0));
+
+                sorted.forEach(p => {
                     const date = p.paid_at || p.timestamp || p.created_at;
                     const dStr = date ? new Date(date).toLocaleDateString() : '—';
                     html += `<tr>
@@ -240,7 +231,6 @@
             await API.adminConfirmPayment(data);
             alert('Payment confirmed.');
             loadPayments();
-            updateStats();
         } catch (e) {
             alert('Failed to confirm payment.');
         }
@@ -255,7 +245,6 @@
             await API.adminRejectPayment(data);
             alert('Payment rejected.');
             loadPayments();
-            updateStats();
         } catch (e) {
             alert('Failed to reject payment.');
         }
@@ -277,7 +266,6 @@
                 alert('Room saved!');
                 addRoomForm.reset();
                 loadRooms(); // Refresh table
-                updateStats();
             } catch (err) {
                 alert('Failed to save room.');
             }
@@ -297,7 +285,6 @@
             if (r) {
                 await API.saveRoom({ ...r, available: !r.available });
                 loadRooms();
-                updateStats();
             }
         } catch (e) { alert('Action failed'); }
     };
@@ -307,7 +294,6 @@
         try {
             await API.deleteRoom(roomNum);
             loadRooms();
-            updateStats();
         } catch (e) { alert('Delete failed'); }
     };
 
@@ -316,6 +302,21 @@
         if (!container) return;
         try {
             const rooms = await API.getRooms();
+
+            // ── Update Room Stats ──
+            const total = rooms.length;
+            const available = rooms.filter(r => r.available).length;
+            const occupied = total - available;
+            const single = rooms.filter(r => r.type === 'single').length;
+            const triple = rooms.filter(r => r.type === 'triple').length;
+
+            setText('statTotalRooms', total);
+            setText('statAvailableRooms', available);
+            setText('statOccupiedRooms', occupied);
+            setText('statSingleRooms', single);
+            setText('statTripleRooms', triple);
+
+
             // Filter logic if filters exist
             const floorFilter = document.getElementById('filterRoomFloor');
             const typeFilter = document.getElementById('filterRoomType');
@@ -390,7 +391,6 @@
                 await API.addNotice(txt);
                 alert('Notice published!');
                 postNoticeForm.reset();
-                updateStats(); // Refresh stats (notice count)
             } catch (err) {
                 alert('Failed to publish notice.');
             }
