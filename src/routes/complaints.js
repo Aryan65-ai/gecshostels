@@ -47,8 +47,7 @@ router.post('/', async (req, res) => {
         res.status(201).json({ id: result.insertId, ticket, category, description, priority, status: 'pending' });
     } catch (err) {
         console.error(err);
-        // Fallback response even if DB insert fails
-        res.status(201).json({ ticket, category, description, priority, status: 'pending' });
+        res.status(500).json({ error: 'Failed to submit complaint. Please try again.' });
     }
 });
 

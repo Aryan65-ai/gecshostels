@@ -19,21 +19,8 @@
         try {
             // Map 'admin' to email if needed
             const email = u === 'admin' ? 'admin@gec.ac.in' : u;
-            // If using backend, we need the real password. If local, 'admin' works.
-            // We'll try API login first.
 
-            let user = null;
-            try {
-                user = await API.login(email, p);
-            } catch (err) {
-                // failed or offline. Fallback to hardcoded local check for demo
-                if (u === 'admin' && p === 'admin') {
-                    user = { role: 'admin', fullName: 'Administrator', email: 'admin@gec.ac.in' };
-                    localStorage.setItem('loggedInUser', JSON.stringify(user));
-                } else {
-                    throw err;
-                }
-            }
+            const user = await API.login(email, p);
 
             if (user && user.role === 'admin') {
                 showDashboard();
@@ -43,7 +30,11 @@
                 API.logout();
             }
         } catch (err) {
-            loginMsg.textContent = 'Invalid credentials.';
+            if (err && err.offline) {
+                loginMsg.textContent = 'Server is not reachable. Please check your connection.';
+            } else {
+                loginMsg.textContent = 'Invalid credentials.';
+            }
             loginMsg.style.color = '#ef4444';
         }
     });
