@@ -1,0 +1,38 @@
+services:
+  # The web service: hosts your API and serves the frontend
+  - type: web
+    name: gec-hostel
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: hostel-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: hostel-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: hostel-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: hostel-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: hostel-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  # The database service: standard MySQL 8
+  - name: hostel-db
+    databaseName: hostel_db
+    user: hostel_user
+    plan: free
