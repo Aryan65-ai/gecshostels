@@ -102,6 +102,7 @@ const API = (function () {
             branch: data.branch,
             hostel_type: data.hostelType,
             room_preference: data.roomPreference,
+            assigned_room: data.roomNumber,
             photo_url: data.photo
         });
         setToken(res.token);

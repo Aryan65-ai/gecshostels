@@ -38,10 +38,11 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   try {
+    // Allow login with either email or student_id
     const [rows] = await pool.execute(
       `SELECT id, full_name, email, phone, password_hash, role, student_id, roll_number, batch, branch, hostel_type, room_preference, assigned_room, photo_url 
-       FROM users WHERE email=? LIMIT 1`,
-      [email]
+       FROM users WHERE email=? OR student_id=? LIMIT 1`,
+      [email, email]
     );
     if (rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
     const user = rows[0];
