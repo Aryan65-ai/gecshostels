@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Explore hostel blocks, room types, facilities and amenities at GEC Samastipur." />
+  <title>Hostel — GEC Samastipur</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* === Hostel Page Specific === */
+    .page-hero {
+      padding: 120px 0 60px;
+      background: linear-gradient(135deg, #e8f4fd 0%, #d6eaf8 50%, #f0f8ff 100%);
+      text-align: center;
+    }
+    .page-hero h1 { font-size: clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--dark); margin-bottom:12px; }
+    .page-hero p { color:var(--text-light); max-width:550px; margin:0 auto; }
+
+    .block-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:24px; }
+    .block-card {
+      background:var(--white); border-radius:var(--radius-lg); padding:32px;
+      border:1px solid var(--border); transition:var(--transition); position:relative; overflow:hidden;
+    }
+    .block-card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:4px;
+      background:linear-gradient(90deg,var(--primary),var(--accent)); transform:scaleX(0); transition:var(--transition);
+    }
+    .block-card:hover::after { transform:scaleX(1); }
+    .block-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+    .block-card .block-name {
+      display:inline-flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:700; color:var(--dark); margin-bottom:16px;
+    }
+    .block-card .block-badge {
+      background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:600;
+    }
+    .block-meta { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    .block-meta span {
+      background:var(--bg); padding:6px 14px; border-radius:8px; font-size:0.82rem; font-weight:500; color:var(--text-light);
+    }
+    .block-bar-wrap { margin-bottom:8px; }
+    .block-bar-label { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-light); margin-bottom:6px; }
+    .block-bar { height:8px; background:var(--bg); border-radius:8px; overflow:hidden; }
+    .block-bar-fill { height:100%; border-radius:8px; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width 1s ease; }
+
+    .facility-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
+    .facility-card {
+      background:var(--white); border-radius:var(--radius); padding:28px; border:1px solid var(--border);
+      text-align:center; transition:var(--transition);
+    }
+    .facility-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:var(--primary); }
+    .facility-card .f-icon { font-size:2.2rem; margin-bottom:14px; }
+    .facility-card h4 { font-size:0.95rem; font-weight:700; color:var(--dark); margin-bottom:6px; }
+    .facility-card p { font-size:0.82rem; color:var(--text-light); }
+
+    .rules-list { max-width:700px; margin:0 auto; }
+    .rule-item {
+      display:flex; align-items:flex-start; gap:14px; padding:18px 24px; background:var(--white);
+      border-radius:var(--radius); border:1px solid var(--border); margin-bottom:12px; transition:var(--transition);
+    }
+    .rule-item:hover { border-color:var(--primary); transform:translateX(4px); }
+    .rule-num {
+      flex-shrink:0; width:32px; height:32px; background:var(--primary-light); color:var(--primary);
+      border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.82rem; font-weight:700;
+    }
+    .rule-item p { font-size:0.9rem; color:var(--text); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="home.html" class="nav-logo"><div class="logo-icon">G</div><span>GEC Hostel</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="home.html">Home</a>
+        <a href="hostel.html" class="active">Hostel</a>
+        <a href="payment.html">Payment</a>
+        <a href="about.html">About</a>
+        <a href="student-profile.html">Profile</a>
+        <a href="admin.html">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="tag" style="margin-bottom:16px;display:inline-block">🏠 Hostel</span>
+      <h1>Our Hostel Blocks & Facilities</h1>
+      <p>Comfortable, secure, and well-maintained hostels for all students of GEC Samastipur.</p>
+    </div>
+  </section>
+
+  <!-- Hostel Blocks -->
+  <section class="section" style="background:var(--bg)">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">🏢 Blocks</span>
+        <h2>Hostel Block Overview</h2>
+        <p>Detailed stats for each hostel block including occupancy and room types.</p>
+      </div>
+      <div class="block-cards" id="blockCards">
+        <!-- Block A -->
+        <div class="block-card">
+          <div class="block-name">Block A — Boys <span class="block-badge">Established 2015</span></div>
+          <div class="block-meta">
+            <span>🛏️ 60 Rooms</span><span>👥 120 Capacity</span><span>🏗️ 3 Floors</span>
+          </div>
+          <div class="block-bar-wrap">
+            <div class="block-bar-label"><span>Occupancy</span><span>85%</span></div>
+            <div class="block-bar"><div class="block-bar-fill" style="width:85%"></div></div>
+          </div>
+        </div>
+        <!-- Block B -->
+        <div class="block-card">
+          <div class="block-name">Block B — Boys <span class="block-badge">Established 2018</span></div>
+          <div class="block-meta">
+            <span>🛏️ 50 Rooms</span><span>👥 100 Capacity</span><span>🏗️ 3 Floors</span>
+          </div>
+          <div class="block-bar-wrap">
+            <div class="block-bar-label"><span>Occupancy</span><span>72%</span></div>
+            <div class="block-bar"><div class="block-bar-fill" style="width:72%"></div></div>
+          </div>
+        </div>
+        <!-- Block C -->
+        <div class="block-card">
+          <div class="block-name">Block C — Girls <span class="block-badge">Established 2020</span></div>
+          <div class="block-meta">
+            <span>🛏️ 40 Rooms</span><span>👥 80 Capacity</span><span>🏗️ 2 Floors</span>
+          </div>
+          <div class="block-bar-wrap">
+            <div class="block-bar-label"><span>Occupancy</span><span>68%</span></div>
+            <div class="block-bar"><div class="block-bar-fill" style="width:68%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Facilities -->
+  <section class="section" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">✨ Amenities</span>
+        <h2>Hostel Facilities</h2>
+        <p>Everything you need for a comfortable stay on campus.</p>
+      </div>
+      <div class="facility-grid">
+        <div class="facility-card"><div class="f-icon">📶</div><h4>Wi-Fi Connectivity</h4><p>High-speed internet across all blocks 24/7</p></div>
+        <div class="facility-card"><div class="f-icon">🍽️</div><h4>Mess & Dining</h4><p>Hygienic meals — breakfast, lunch & dinner</p></div>
+        <div class="facility-card"><div class="f-icon">💡</div><h4>24/7 Power Backup</h4><p>Uninterrupted electricity with generator support</p></div>
+        <div class="facility-card"><div class="f-icon">🏥</div><h4>Medical Aid</h4><p>First-aid room and nearby hospital tie-up</p></div>
+        <div class="facility-card"><div class="f-icon">🔒</div><h4>Security & CCTV</h4><p>Round-the-clock security with CCTV monitoring</p></div>
+        <div class="facility-card"><div class="f-icon">🧺</div><h4>Laundry Service</h4><p>Affordable laundry facilities within premises</p></div>
+        <div class="facility-card"><div class="f-icon">📚</div><h4>Reading Room</h4><p>Quiet study space open till midnight</p></div>
+        <div class="facility-card"><div class="f-icon">🏋️</div><h4>Recreation</h4><p>Indoor games, TV room, and outdoor courts</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rules -->
+  <section class="section" style="background:var(--bg)">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">📋 Guidelines</span>
+        <h2>Hostel Rules & Regulations</h2>
+        <p>Ensuring a safe, respectful, and disciplined environment for everyone.</p>
+      </div>
+      <div class="rules-list">
+        <div class="rule-item"><div class="rule-num">01</div><p>All students must carry their ID card inside hostel premises at all times.</p></div>
+        <div class="rule-item"><div class="rule-num">02</div><p>Entry gate closes at 9:00 PM. Late entry requires warden's permission.</p></div>
+        <div class="rule-item"><div class="rule-num">03</div><p>Use of electrical appliances (heaters, irons) in rooms is strictly prohibited.</p></div>
+        <div class="rule-item"><div class="rule-num">04</div><p>Ragging of any kind will result in immediate expulsion from the hostel.</p></div>
+        <div class="rule-item"><div class="rule-num">05</div><p>Maintain cleanliness in rooms, corridors, and common areas.</p></div>
+        <div class="rule-item"><div class="rule-num">06</div><p>Visitors are allowed only in the common room during designated hours.</p></div>
+        <div class="rule-item"><div class="rule-num">07</div><p>Any damage to hostel property must be reported and compensated.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><h3>🎓 GEC Samastipur</h3><p>Government Engineering College, Samastipur is committed to providing quality education and a safe, comfortable hostel experience for all students.</p></div>
+        <div><h4>Quick Links</h4><ul><li><a href="home.html">Home</a></li><li><a href="hostel.html">Hostel</a></li><li><a href="payment.html">Payment</a></li><li><a href="about.html">About</a></li></ul></div>
+        <div><h4>Student Services</h4><ul><li><a href="student-profile.html">Profile</a></li><li><a href="admin.html">Admin Portal</a></li></ul></div>
+        <div><h4>Contact</h4><ul><li>📍 GEC Campus, Samastipur, Bihar 848101</li><li>📞 +91-6274-XXXXXX</li><li>✉️ hostel@gecsamastipur.ac.in</li></ul></div>
+      </div>
+      <div class="footer-bottom">© 2026 Government Engineering College, Samastipur. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

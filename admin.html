@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Admin panel for GEC Samastipur hostel — Manage rooms, students, payments and complaints." />
+  <title>Admin Panel — GEC Samastipur</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-hero { padding:120px 0 60px; background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460); text-align:center; }
+    .page-hero h1 { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:white; margin-bottom:12px; }
+    .page-hero p { color:rgba(255,255,255,0.7); max-width:550px; margin:0 auto; }
+    .page-hero .tag { background:rgba(255,255,255,0.15); color:white; }
+
+    .admin-layout { display:grid; grid-template-columns:240px 1fr; gap:28px; }
+    @media(max-width:900px) { .admin-layout { grid-template-columns:1fr; } }
+
+    /* Sidebar */
+    .admin-sidebar {
+      background:var(--white); border-radius:var(--radius-lg); padding:24px 16px;
+      border:1px solid var(--border); height:fit-content; position:sticky; top:90px;
+    }
+    .admin-sidebar h4 { font-size:0.78rem; font-weight:600; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; padding:0 12px; margin-bottom:12px; }
+    .side-link {
+      display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:8px;
+      font-size:0.88rem; font-weight:500; color:var(--text); cursor:pointer; transition:var(--transition); border:none; background:none; width:100%; text-align:left;
+      font-family:'Inter',sans-serif;
+    }
+    .side-link:hover { background:var(--primary-light); color:var(--primary); }
+    .side-link.active { background:var(--primary); color:white; }
+
+    /* KPI Cards */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+    .kpi-card {
+      background:var(--white); border-radius:var(--radius); padding:22px; border:1px solid var(--border); transition:var(--transition);
+    }
+    .kpi-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+    .kpi-card .kpi-icon { font-size:1.5rem; margin-bottom:8px; }
+    .kpi-card .kpi-num { font-size:1.8rem; font-weight:800; color:var(--dark); }
+    .kpi-card .kpi-label { font-size:0.78rem; color:var(--text-light); margin-top:2px; }
+    .kpi-card .kpi-change { font-size:0.72rem; font-weight:600; margin-top:6px; }
+    .kpi-card .kpi-change.up { color:var(--success); }
+    .kpi-card .kpi-change.down { color:var(--danger); }
+
+    /* Admin content panels */
+    .admin-panel { display:none; }
+    .admin-panel.active { display:block; animation:fadeUp 0.4s ease; }
+
+    .panel-header {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;
+    }
+    .panel-header h2 { font-size:1.3rem; font-weight:700; color:var(--dark); }
+    .search-box {
+      display:flex; align-items:center; gap:8px; background:var(--bg); padding:8px 16px;
+      border-radius:8px; border:1px solid var(--border); min-width:220px;
+    }
+    .search-box input { border:none; background:none; outline:none; font-size:0.85rem; font-family:'Inter',sans-serif; color:var(--text); flex:1; }
+
+    .data-table { width:100%; background:var(--white); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
+    .data-table th { background:var(--bg); padding:14px 18px; text-align:left; font-size:0.78rem; font-weight:600; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px; }
+    .data-table td { padding:13px 18px; font-size:0.85rem; border-top:1px solid var(--border); }
+    .data-table tr:hover td { background:var(--primary-light); }
+    .status-badge { display:inline-block; padding:3px 12px; border-radius:50px; font-size:0.72rem; font-weight:600; }
+    .status-badge.active { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.inactive { background:#fce4ec; color:#c62828; }
+    .status-badge.paid { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.pending { background:#fff3e0; color:#e65100; }
+    .status-badge.resolved { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.open { background:#e3f2fd; color:#1565c0; }
+
+    .action-btn {
+      padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:var(--white);
+      cursor:pointer; font-size:0.75rem; font-weight:600; transition:var(--transition); font-family:'Inter',sans-serif;
+    }
+    .action-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .action-btn.danger { color:var(--danger); }
+    .action-btn.danger:hover { background:var(--danger); color:white; border-color:var(--danger); }
+
+    /* Quick Actions */
+    .quick-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-top:28px; }
+    .qa-card {
+      background:var(--white); border-radius:var(--radius); padding:20px; border:1px solid var(--border);
+      cursor:pointer; transition:var(--transition); text-align:center;
+    }
+    .qa-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--primary); }
+    .qa-card .qa-icon { font-size:1.8rem; margin-bottom:8px; }
+    .qa-card h4 { font-size:0.88rem; font-weight:600; color:var(--dark); }
+    .qa-card p { font-size:0.75rem; color:var(--text-light); margin-top:4px; }
+
+    @media(max-width:768px) {
+      .data-table th, .data-table td { padding:10px 10px; font-size:0.78rem; }
+      .admin-sidebar { position:static; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="home.html" class="nav-logo"><div class="logo-icon">G</div><span>GEC Hostel</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="home.html">Home</a>
+        <a href="hostel.html">Hostel</a>
+        <a href="payment.html">Payment</a>
+        <a href="about.html">About</a>
+        <a href="student-profile.html">Profile</a>
+        <a href="admin.html" class="active">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="tag" style="margin-bottom:16px;display:inline-block">🛡️ Admin Panel</span>
+      <h1>Hostel Administration</h1>
+      <p>Manage rooms, students, payments, and complaints from one dashboard.</p>
+    </div>
+  </section>
+
+  <!-- Admin Dashboard -->
+  <section class="section" style="background:var(--bg)">
+    <div class="container">
+      <div class="admin-layout">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+          <h4>Navigation</h4>
+          <button class="side-link active" onclick="switchPanel('dashboard',this)">📊 Dashboard</button>
+          <button class="side-link" onclick="switchPanel('students',this)">👥 Students</button>
+          <button class="side-link" onclick="switchPanel('rooms',this)">🏠 Rooms</button>
+          <button class="side-link" onclick="switchPanel('payments',this)">💰 Payments</button>
+          <button class="side-link" onclick="switchPanel('complaints',this)">📝 Complaints</button>
+        </div>
+
+        <!-- Main Content -->
+        <div>
+          <!-- Panel: Dashboard -->
+          <div class="admin-panel active" id="panel-dashboard">
+            <div class="panel-header"><h2>📊 Dashboard Overview</h2></div>
+            <div class="kpi-grid">
+              <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-num">287</div><div class="kpi-label">Total Students</div><div class="kpi-change up">↑ 12 this month</div></div>
+              <div class="kpi-card"><div class="kpi-icon">🏠</div><div class="kpi-num">150</div><div class="kpi-label">Total Rooms</div><div class="kpi-change up">32 available</div></div>
+              <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-num">₹4.2L</div><div class="kpi-label">Revenue (May)</div><div class="kpi-change up">↑ 18% vs Apr</div></div>
+              <div class="kpi-card"><div class="kpi-icon">📝</div><div class="kpi-num">8</div><div class="kpi-label">Open Complaints</div><div class="kpi-change down">↑ 3 new today</div></div>
+            </div>
+            <div class="quick-actions">
+              <div class="qa-card" onclick="switchPanel('students',document.querySelectorAll('.side-link')[1])"><div class="qa-icon">➕</div><h4>Add Student</h4><p>Register new resident</p></div>
+              <div class="qa-card" onclick="switchPanel('rooms',document.querySelectorAll('.side-link')[2])"><div class="qa-icon">🔄</div><h4>Manage Rooms</h4><p>Update availability</p></div>
+              <div class="qa-card" onclick="switchPanel('payments',document.querySelectorAll('.side-link')[3])"><div class="qa-icon">📊</div><h4>View Payments</h4><p>Track fee collection</p></div>
+              <div class="qa-card" onclick="switchPanel('complaints',document.querySelectorAll('.side-link')[4])"><div class="qa-icon">🔔</div><h4>Complaints</h4><p>Resolve pending issues</p></div>
+            </div>
+          </div>
+
+          <!-- Panel: Students -->
+          <div class="admin-panel" id="panel-students">
+            <div class="panel-header">
+              <h2>👥 Student Management</h2>
+              <div class="search-box">🔍 <input type="text" placeholder="Search students..." /></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead><tr><th>Roll No</th><th>Name</th><th>Branch</th><th>Room</th><th>Fee Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                  <tr><td>2023CS001</td><td>Raushan Kumar</td><td>CSE</td><td>B-204</td><td><span class="status-badge pending">Pending</span></td><td><button class="action-btn">View</button> <button class="action-btn danger">Remove</button></td></tr>
+                  <tr><td>2023CS015</td><td>Amit Raj</td><td>CSE</td><td>B-204</td><td><span class="status-badge paid">Paid</span></td><td><button class="action-btn">View</button> <button class="action-btn danger">Remove</button></td></tr>
+                  <tr><td>2023EE008</td><td>Priya Singh</td><td>EE</td><td>C-105</td><td><span class="status-badge paid">Paid</span></td><td><button class="action-btn">View</button> <button class="action-btn danger">Remove</button></td></tr>
+                  <tr><td>2023ME012</td><td>Vikash Yadav</td><td>ME</td><td>A-301</td><td><span class="status-badge paid">Paid</span></td><td><button class="action-btn">View</button> <button class="action-btn danger">Remove</button></td></tr>
+                  <tr><td>2023CE005</td><td>Neha Kumari</td><td>CE</td><td>C-203</td><td><span class="status-badge pending">Pending</span></td><td><button class="action-btn">View</button> <button class="action-btn danger">Remove</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel: Rooms -->
+          <div class="admin-panel" id="panel-rooms">
+            <div class="panel-header">
+              <h2>🏠 Room Management</h2>
+              <div class="search-box">🔍 <input type="text" placeholder="Search rooms..." /></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead><tr><th>Room</th><th>Block</th><th>Floor</th><th>Type</th><th>Occupants</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>A-101</td><td>Block A</td><td>1st</td><td>Double</td><td>2/2</td><td><span class="status-badge inactive">Full</span></td><td><button class="action-btn">Edit</button></td></tr>
+                  <tr><td>A-102</td><td>Block A</td><td>1st</td><td>Double</td><td>1/2</td><td><span class="status-badge active">Available</span></td><td><button class="action-btn">Edit</button></td></tr>
+                  <tr><td>B-204</td><td>Block B</td><td>2nd</td><td>Double</td><td>2/2</td><td><span class="status-badge inactive">Full</span></td><td><button class="action-btn">Edit</button></td></tr>
+                  <tr><td>B-301</td><td>Block B</td><td>3rd</td><td>Triple</td><td>0/3</td><td><span class="status-badge active">Available</span></td><td><button class="action-btn">Edit</button></td></tr>
+                  <tr><td>C-105</td><td>Block C</td><td>1st</td><td>Double</td><td>2/2</td><td><span class="status-badge inactive">Full</span></td><td><button class="action-btn">Edit</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel: Payments -->
+          <div class="admin-panel" id="panel-payments">
+            <div class="panel-header">
+              <h2>💰 Payment Records</h2>
+              <div class="search-box">🔍 <input type="text" placeholder="Search by receipt..." /></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead><tr><th>Date</th><th>Student</th><th>Type</th><th>Amount</th><th>Receipt</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>May 1, 2026</td><td>Amit Raj</td><td>Mess Fee</td><td>₹ 3,500</td><td>GEC-2026-51234</td><td><span class="status-badge paid">Paid</span></td></tr>
+                  <tr><td>Apr 30, 2026</td><td>Priya Singh</td><td>Hostel Charge</td><td>₹ 12,000</td><td>GEC-2026-50891</td><td><span class="status-badge paid">Paid</span></td></tr>
+                  <tr><td>Apr 28, 2026</td><td>Vikash Yadav</td><td>Mess Fee</td><td>₹ 3,500</td><td>GEC-2026-49723</td><td><span class="status-badge paid">Paid</span></td></tr>
+                  <tr><td>—</td><td>Raushan Kumar</td><td>Mess Fee (May)</td><td>₹ 3,500</td><td>—</td><td><span class="status-badge pending">Pending</span></td></tr>
+                  <tr><td>—</td><td>Neha Kumari</td><td>Hostel Charge</td><td>₹ 12,000</td><td>—</td><td><span class="status-badge pending">Pending</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel: Complaints -->
+          <div class="admin-panel" id="panel-complaints">
+            <div class="panel-header">
+              <h2>📝 Complaint Management</h2>
+              <div class="search-box">🔍 <input type="text" placeholder="Search complaints..." /></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead><tr><th>Date</th><th>Student</th><th>Room</th><th>Type</th><th>Issue</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>May 2</td><td>Raushan Kumar</td><td>B-204</td><td>📶 Internet</td><td>Wi-Fi down on 2nd floor</td><td><span class="status-badge open">Open</span></td><td><button class="action-btn" onclick="this.parentElement.previousElementSibling.innerHTML='<span class=\'status-badge resolved\'>Resolved</span>';showToast('✅ Complaint marked as resolved','success')">Resolve</button></td></tr>
+                  <tr><td>May 1</td><td>Neha Kumari</td><td>C-203</td><td>🧹 Cleaning</td><td>Washroom not cleaned for 2 days</td><td><span class="status-badge open">Open</span></td><td><button class="action-btn" onclick="this.parentElement.previousElementSibling.innerHTML='<span class=\'status-badge resolved\'>Resolved</span>';showToast('✅ Complaint marked as resolved','success')">Resolve</button></td></tr>
+                  <tr><td>Apr 28</td><td>Raushan Kumar</td><td>B-204</td><td>⚡ Electricity</td><td>Fan not working</td><td><span class="status-badge resolved">Resolved</span></td><td><button class="action-btn" disabled>Done</button></td></tr>
+                  <tr><td>Apr 25</td><td>Vikash Yadav</td><td>A-301</td><td>🔧 Plumbing</td><td>Leaking pipe</td><td><span class="status-badge resolved">Resolved</span></td><td><button class="action-btn" disabled>Done</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><h3>🎓 GEC Samastipur</h3><p>Government Engineering College, Samastipur — Admin Portal</p></div>
+        <div><h4>Quick Links</h4><ul><li><a href="home.html">Home</a></li><li><a href="hostel.html">Hostel</a></li><li><a href="payment.html">Payment</a></li><li><a href="about.html">About</a></li></ul></div>
+        <div><h4>Student Services</h4><ul><li><a href="student-profile.html">Profile</a></li><li><a href="admin.html">Admin Portal</a></li></ul></div>
+        <div><h4>Contact</h4><ul><li>📍 GEC Campus, Samastipur, Bihar 848101</li><li>📞 +91-6274-XXXXXX</li><li>✉️ hostel@gecsamastipur.ac.in</li></ul></div>
+      </div>
+      <div class="footer-bottom">© 2026 Government Engineering College, Samastipur. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    function switchPanel(panelId, btn) {
+      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
+      document.getElementById('panel-' + panelId).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

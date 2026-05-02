@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pay your hostel fees online securely — Mess fee, hostel charges, and security deposit at GEC Samastipur." />
+  <title>Payment — GEC Samastipur</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-hero { padding:120px 0 60px; background:linear-gradient(135deg,#e8f4fd 0%,#d6eaf8 50%,#f0f8ff 100%); text-align:center; }
+    .page-hero h1 { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--dark); margin-bottom:12px; }
+    .page-hero p { color:var(--text-light); max-width:550px; margin:0 auto; }
+
+    .payment-layout { display:grid; grid-template-columns:1fr 400px; gap:40px; align-items:start; }
+    @media(max-width:900px) { .payment-layout { grid-template-columns:1fr; } }
+
+    .payment-form-card {
+      background:var(--white); border-radius:var(--radius-lg); padding:36px;
+      border:1px solid var(--border); box-shadow:var(--shadow-sm);
+    }
+    .payment-form-card h3 { font-size:1.2rem; font-weight:700; color:var(--dark); margin-bottom:24px; display:flex; align-items:center; gap:10px; }
+
+    .fee-select-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+    .fee-option {
+      padding:16px; border-radius:var(--radius); border:2px solid var(--border);
+      cursor:pointer; transition:var(--transition); text-align:center;
+    }
+    .fee-option:hover { border-color:var(--primary); }
+    .fee-option.selected { border-color:var(--primary); background:var(--primary-light); }
+    .fee-option .fo-icon { font-size:1.5rem; margin-bottom:6px; }
+    .fee-option .fo-name { font-size:0.82rem; font-weight:600; color:var(--dark); }
+    .fee-option .fo-amt { font-size:1.1rem; font-weight:800; color:var(--primary); margin-top:4px; }
+
+    .summary-card {
+      background:var(--white); border-radius:var(--radius-lg); padding:32px;
+      border:1px solid var(--border); box-shadow:var(--shadow-sm); position:sticky; top:90px;
+    }
+    .summary-card h3 { font-size:1.1rem; font-weight:700; color:var(--dark); margin-bottom:20px; }
+    .summary-row { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:0.9rem; }
+    .summary-row:last-of-type { border-bottom:none; }
+    .summary-row.total { font-weight:700; font-size:1.05rem; color:var(--dark); border-top:2px solid var(--dark); padding-top:16px; margin-top:8px; }
+    .summary-row .label { color:var(--text-light); }
+
+    .payment-methods { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .pay-method {
+      flex:1; min-width:80px; padding:14px 10px; border-radius:var(--radius); border:2px solid var(--border);
+      text-align:center; cursor:pointer; transition:var(--transition); font-size:0.78rem; font-weight:600;
+    }
+    .pay-method:hover { border-color:var(--primary); }
+    .pay-method.selected { border-color:var(--primary); background:var(--primary-light); }
+    .pay-method .pm-icon { font-size:1.4rem; margin-bottom:4px; }
+
+    .receipt-box {
+      display:none; background:var(--primary-light); border-radius:var(--radius); padding:24px;
+      text-align:center; border:1px solid rgba(26,115,232,0.2);
+    }
+    .receipt-box.show { display:block; animation:fadeUp 0.5s ease; }
+    .receipt-box h4 { color:var(--primary); font-size:1rem; margin-bottom:8px; }
+    .receipt-box p { font-size:0.85rem; color:var(--text-light); }
+    .receipt-box .receipt-id { font-size:1.3rem; font-weight:800; color:var(--dark); margin:12px 0; letter-spacing:2px; }
+
+    .step-indicator { display:flex; gap:8px; margin-bottom:28px; }
+    .step {
+      flex:1; height:4px; border-radius:4px; background:var(--border); transition:var(--transition);
+    }
+    .step.active { background:var(--primary); }
+    .step.done { background:var(--success); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="home.html" class="nav-logo"><div class="logo-icon">G</div><span>GEC Hostel</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="home.html">Home</a>
+        <a href="hostel.html">Hostel</a>
+        <a href="payment.html" class="active">Payment</a>
+        <a href="about.html">About</a>
+        <a href="student-profile.html">Profile</a>
+        <a href="admin.html">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="tag" style="margin-bottom:16px;display:inline-block">💳 Payment</span>
+      <h1>Pay Hostel Fees Online</h1>
+      <p>Secure, fast, and hassle-free fee payment for all hostel charges.</p>
+    </div>
+  </section>
+
+  <!-- Payment Section -->
+  <section class="section" style="background:var(--bg)">
+    <div class="container">
+      <div class="payment-layout">
+        <!-- Left: Form -->
+        <div>
+          <div class="payment-form-card">
+            <div class="step-indicator">
+              <div class="step active" id="step1"></div>
+              <div class="step" id="step2"></div>
+              <div class="step" id="step3"></div>
+            </div>
+            <h3>📋 Student & Fee Details</h3>
+            <form id="paymentForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="p-name">Full Name</label>
+                  <input type="text" id="p-name" placeholder="e.g. Raushan Kumar" required />
+                </div>
+                <div class="form-group">
+                  <label for="p-roll">Roll Number</label>
+                  <input type="text" id="p-roll" placeholder="e.g. 2023CS001" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="p-room">Room No.</label>
+                  <input type="text" id="p-room" placeholder="e.g. B-204" required />
+                </div>
+                <div class="form-group">
+                  <label for="p-email">Email</label>
+                  <input type="email" id="p-email" placeholder="you@example.com" required />
+                </div>
+              </div>
+
+              <h3 style="margin-top:8px">💰 Select Fee Type</h3>
+              <div class="fee-select-grid" id="feeGrid">
+                <div class="fee-option selected" data-fee="3500" data-name="Mess Fee" onclick="selectFee(this)">
+                  <div class="fo-icon">🍽️</div>
+                  <div class="fo-name">Mess Fee</div>
+                  <div class="fo-amt">₹ 3,500</div>
+                </div>
+                <div class="fee-option" data-fee="12000" data-name="Hostel Charge" onclick="selectFee(this)">
+                  <div class="fo-icon">🏠</div>
+                  <div class="fo-name">Hostel Charge</div>
+                  <div class="fo-amt">₹ 12,000</div>
+                </div>
+                <div class="fee-option" data-fee="5000" data-name="Security Deposit" onclick="selectFee(this)">
+                  <div class="fo-icon">🔒</div>
+                  <div class="fo-name">Security Deposit</div>
+                  <div class="fo-amt">₹ 5,000</div>
+                </div>
+                <div class="fee-option" data-fee="20500" data-name="Full Payment" onclick="selectFee(this)">
+                  <div class="fo-icon">📦</div>
+                  <div class="fo-name">Full Payment</div>
+                  <div class="fo-amt">₹ 20,500</div>
+                </div>
+              </div>
+
+              <h3>🏦 Payment Method</h3>
+              <div class="payment-methods" id="payMethods">
+                <div class="pay-method selected" data-method="upi" onclick="selectMethod(this)">
+                  <div class="pm-icon">📱</div>UPI
+                </div>
+                <div class="pay-method" data-method="card" onclick="selectMethod(this)">
+                  <div class="pm-icon">💳</div>Card
+                </div>
+                <div class="pay-method" data-method="netbanking" onclick="selectMethod(this)">
+                  <div class="pm-icon">🏦</div>Net Banking
+                </div>
+                <div class="pay-method" data-method="sbi" onclick="selectMethod(this)">
+                  <div class="pm-icon">🏛️</div>SBI Collect
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" id="payBtn">
+                Proceed to Pay →
+              </button>
+            </form>
+          </div>
+
+          <!-- Receipt (shown after payment) -->
+          <div class="receipt-box" id="receiptBox" style="margin-top:24px">
+            <h4>✅ Payment Successful!</h4>
+            <div class="receipt-id" id="receiptId">GEC-2026-XXXXX</div>
+            <p>A confirmation email has been sent to your registered email address.</p>
+            <button class="btn btn-outline" style="margin-top:16px" onclick="window.print()">🖨️ Print Receipt</button>
+          </div>
+        </div>
+
+        <!-- Right: Summary -->
+        <div class="summary-card">
+          <h3>🧾 Payment Summary</h3>
+          <div class="summary-row"><span class="label">Fee Type</span><span id="sumType">Mess Fee</span></div>
+          <div class="summary-row"><span class="label">Amount</span><span id="sumAmt">₹ 3,500</span></div>
+          <div class="summary-row"><span class="label">Processing Fee</span><span>₹ 0</span></div>
+          <div class="summary-row"><span class="label">GST (0%)</span><span>₹ 0</span></div>
+          <div class="summary-row total"><span>Total Payable</span><span id="sumTotal">₹ 3,500</span></div>
+          <div style="margin-top:20px;padding:14px;background:var(--primary-light);border-radius:var(--radius);font-size:0.82rem;color:var(--primary);text-align:center">
+            🔒 Payments are secured with 256-bit SSL encryption
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><h3>🎓 GEC Samastipur</h3><p>Government Engineering College, Samastipur is committed to providing quality education and a safe, comfortable hostel experience for all students.</p></div>
+        <div><h4>Quick Links</h4><ul><li><a href="home.html">Home</a></li><li><a href="hostel.html">Hostel</a></li><li><a href="payment.html">Payment</a></li><li><a href="about.html">About</a></li></ul></div>
+        <div><h4>Student Services</h4><ul><li><a href="student-profile.html">Profile</a></li><li><a href="admin.html">Admin Portal</a></li></ul></div>
+        <div><h4>Contact</h4><ul><li>📍 GEC Campus, Samastipur, Bihar 848101</li><li>📞 +91-6274-XXXXXX</li><li>✉️ hostel@gecsamastipur.ac.in</li></ul></div>
+      </div>
+      <div class="footer-bottom">© 2026 Government Engineering College, Samastipur. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    // Fee selection
+    function selectFee(el) {
+      document.querySelectorAll('.fee-option').forEach(f => f.classList.remove('selected'));
+      el.classList.add('selected');
+      const amt = el.dataset.fee;
+      const name = el.dataset.name;
+      document.getElementById('sumType').textContent = name;
+      document.getElementById('sumAmt').textContent = '₹ ' + parseInt(amt).toLocaleString('en-IN');
+      document.getElementById('sumTotal').textContent = '₹ ' + parseInt(amt).toLocaleString('en-IN');
+      document.getElementById('step2').classList.add('active');
+    }
+
+    // Method selection
+    function selectMethod(el) {
+      document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('step2').classList.add('active');
+      document.getElementById('step2').classList.add('done');
+      document.getElementById('step3').classList.add('active');
+    }
+
+    // Form submit
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('payBtn');
+      btn.innerHTML = '⏳ Processing...';
+      btn.disabled = true;
+
+      // Steps
+      document.querySelectorAll('.step').forEach(s => s.classList.add('active','done'));
+
+      setTimeout(() => {
+        const id = 'GEC-2026-' + Math.floor(10000 + Math.random() * 90000);
+        document.getElementById('receiptId').textContent = id;
+        document.getElementById('receiptBox').classList.add('show');
+        btn.innerHTML = '✅ Payment Complete';
+        btn.style.background = 'var(--success)';
+        btn.style.boxShadow = 'none';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

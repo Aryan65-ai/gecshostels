@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Student profile and dashboard — View room details, payment history, and complaints at GEC Samastipur." />
+  <title>Student Profile — GEC Samastipur</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-hero { padding:120px 0 60px; background:linear-gradient(135deg,#e8f4fd 0%,#d6eaf8 50%,#f0f8ff 100%); text-align:center; }
+    .page-hero h1 { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--dark); margin-bottom:12px; }
+    .page-hero p { color:var(--text-light); max-width:550px; margin:0 auto; }
+
+    /* Login Card */
+    .login-card {
+      max-width:440px; margin:0 auto; background:var(--white); border-radius:var(--radius-lg);
+      padding:40px; border:1px solid var(--border); box-shadow:var(--shadow-md); text-align:center;
+    }
+    .login-card h3 { font-size:1.3rem; font-weight:700; color:var(--dark); margin-bottom:8px; }
+    .login-card p { font-size:0.88rem; color:var(--text-light); margin-bottom:28px; }
+    .google-btn {
+      display:inline-flex; align-items:center; gap:12px; padding:14px 32px;
+      background:var(--white); border:2px solid var(--border); border-radius:10px; cursor:pointer;
+      font-size:0.95rem; font-weight:600; color:var(--dark); transition:var(--transition); font-family:'Inter',sans-serif;
+      width:100%; justify-content:center;
+    }
+    .google-btn:hover { border-color:var(--primary); box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .google-btn svg { width:20px; height:20px; }
+    .divider { display:flex; align-items:center; gap:16px; margin:24px 0; color:var(--text-light); font-size:0.82rem; }
+    .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* Dashboard */
+    .dashboard { display:none; }
+    .dashboard.show { display:block; }
+    .login-section.hide { display:none; }
+
+    .dash-header {
+      display:flex; align-items:center; gap:20px; background:var(--white); border-radius:var(--radius-lg);
+      padding:28px 32px; border:1px solid var(--border); margin-bottom:24px;
+    }
+    .dash-avatar {
+      width:70px; height:70px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent));
+      display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:white; flex-shrink:0;
+    }
+    .dash-info h3 { font-size:1.2rem; font-weight:700; color:var(--dark); }
+    .dash-info p { font-size:0.85rem; color:var(--text-light); }
+    .dash-info .badge {
+      display:inline-block; background:#e8f5e9; color:#2e7d32; padding:3px 12px;
+      border-radius:50px; font-size:0.72rem; font-weight:600; margin-top:6px;
+    }
+    .logout-btn {
+      margin-left:auto; padding:10px 20px; background:none; border:2px solid var(--danger);
+      color:var(--danger); border-radius:8px; cursor:pointer; font-weight:600; font-size:0.82rem;
+      font-family:'Inter',sans-serif; transition:var(--transition);
+    }
+    .logout-btn:hover { background:var(--danger); color:white; }
+
+    /* Tabs */
+    .dash-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+    .dash-tab {
+      padding:10px 22px; border-radius:8px; border:none; background:var(--white); cursor:pointer;
+      font-weight:600; font-size:0.85rem; color:var(--text-light); transition:var(--transition);
+      font-family:'Inter',sans-serif; border:1px solid var(--border);
+    }
+    .dash-tab:hover { color:var(--primary); border-color:var(--primary); }
+    .dash-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+
+    .tab-content { display:none; }
+    .tab-content.active { display:block; animation:fadeUp 0.4s ease; }
+
+    /* Info Grid */
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+    .info-card {
+      background:var(--white); border-radius:var(--radius); padding:24px; border:1px solid var(--border);
+    }
+    .info-card .ic-label { font-size:0.78rem; color:var(--text-light); font-weight:500; margin-bottom:4px; }
+    .info-card .ic-value { font-size:1rem; font-weight:700; color:var(--dark); }
+
+    /* Table */
+    .data-table { width:100%; background:var(--white); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
+    .data-table th { background:var(--bg); padding:14px 20px; text-align:left; font-size:0.8rem; font-weight:600; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px; }
+    .data-table td { padding:14px 20px; font-size:0.88rem; border-top:1px solid var(--border); }
+    .data-table tr:hover td { background:var(--primary-light); }
+    .status-badge {
+      display:inline-block; padding:3px 12px; border-radius:50px; font-size:0.72rem; font-weight:600;
+    }
+    .status-badge.paid { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.pending { background:#fff3e0; color:#e65100; }
+    .status-badge.resolved { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.in-progress { background:#e3f2fd; color:#1565c0; }
+
+    @media(max-width:768px) {
+      .dash-header { flex-direction:column; text-align:center; }
+      .logout-btn { margin:12px auto 0; }
+      .data-table { font-size:0.8rem; }
+      .data-table th, .data-table td { padding:10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="home.html" class="nav-logo"><div class="logo-icon">G</div><span>GEC Hostel</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="home.html">Home</a>
+        <a href="hostel.html">Hostel</a>
+        <a href="payment.html">Payment</a>
+        <a href="about.html">About</a>
+        <a href="student-profile.html" class="active">Profile</a>
+        <a href="admin.html">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="tag" style="margin-bottom:16px;display:inline-block">👤 Student Portal</span>
+      <h1>Student Profile & Dashboard</h1>
+      <p>Access your hostel details, payment history, and complaint status.</p>
+    </div>
+  </section>
+
+  <!-- Login Section -->
+  <section class="section login-section" id="loginSection" style="background:var(--bg)">
+    <div class="container">
+      <div class="login-card">
+        <div style="font-size:3rem;margin-bottom:16px">🔐</div>
+        <h3>Welcome, Student!</h3>
+        <p>Sign in with your college Google account to access your hostel dashboard.</p>
+        <button class="google-btn" id="googleLoginBtn" onclick="simulateLogin()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Sign in with Google
+        </button>
+        <div class="divider">or</div>
+        <form onsubmit="simulateLogin(); return false;">
+          <div class="form-group"><input type="text" placeholder="Roll Number (e.g. 2023CS001)" required /></div>
+          <div class="form-group"><input type="password" placeholder="Password" required /></div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Login →</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section class="section dashboard" id="dashboard" style="background:var(--bg)">
+    <div class="container">
+      <!-- Header -->
+      <div class="dash-header">
+        <div class="dash-avatar">RK</div>
+        <div class="dash-info">
+          <h3>Raushan Kumar</h3>
+          <p>2023CS001 • B.Tech CSE, 3rd Year</p>
+          <span class="badge">✅ Active Resident</span>
+        </div>
+        <button class="logout-btn" onclick="simulateLogout()">🚪 Logout</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="dash-tabs">
+        <button class="dash-tab active" onclick="switchTab('overview',this)">📊 Overview</button>
+        <button class="dash-tab" onclick="switchTab('payments',this)">💰 Payments</button>
+        <button class="dash-tab" onclick="switchTab('complaints',this)">📝 Complaints</button>
+        <button class="dash-tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+      </div>
+
+      <!-- Tab: Overview -->
+      <div class="tab-content active" id="tab-overview">
+        <div class="info-grid">
+          <div class="info-card"><div class="ic-label">Hostel Block</div><div class="ic-value">Block B</div></div>
+          <div class="info-card"><div class="ic-label">Room Number</div><div class="ic-value">B-204</div></div>
+          <div class="info-card"><div class="ic-label">Room Type</div><div class="ic-value">Double Sharing</div></div>
+          <div class="info-card"><div class="ic-label">Floor</div><div class="ic-value">2nd Floor</div></div>
+          <div class="info-card"><div class="ic-label">Roommate</div><div class="ic-value">Amit Raj (2023CS015)</div></div>
+          <div class="info-card"><div class="ic-label">Check-in Date</div><div class="ic-value">Aug 15, 2025</div></div>
+          <div class="info-card"><div class="ic-label">Mess Subscription</div><div class="ic-value">Active (May 2026)</div></div>
+          <div class="info-card"><div class="ic-label">Pending Dues</div><div class="ic-value" style="color:var(--danger)">₹ 3,500</div></div>
+        </div>
+      </div>
+
+      <!-- Tab: Payments -->
+      <div class="tab-content" id="tab-payments">
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Receipt</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Apr 5, 2026</td><td>Mess Fee — April</td><td>₹ 3,500</td><td>GEC-2026-42819</td><td><span class="status-badge paid">Paid</span></td></tr>
+              <tr><td>Mar 3, 2026</td><td>Mess Fee — March</td><td>₹ 3,500</td><td>GEC-2026-38912</td><td><span class="status-badge paid">Paid</span></td></tr>
+              <tr><td>Feb 1, 2026</td><td>Hostel Charge — 2025-26</td><td>₹ 12,000</td><td>GEC-2026-30145</td><td><span class="status-badge paid">Paid</span></td></tr>
+              <tr><td>Aug 18, 2025</td><td>Security Deposit</td><td>₹ 5,000</td><td>GEC-2025-11234</td><td><span class="status-badge paid">Paid</span></td></tr>
+              <tr><td>May 2026</td><td>Mess Fee — May</td><td>₹ 3,500</td><td>—</td><td><span class="status-badge pending">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:20px;text-align:center">
+          <a href="payment.html" class="btn btn-primary">Pay Pending Dues →</a>
+        </div>
+      </div>
+
+      <!-- Tab: Complaints -->
+      <div class="tab-content" id="tab-complaints">
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Type</th><th>Issue</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Apr 28, 2026</td><td>⚡ Electricity</td><td>Fan not working in Room B-204</td><td><span class="status-badge resolved">Resolved</span></td></tr>
+              <tr><td>Apr 20, 2026</td><td>🔧 Plumbing</td><td>Leaking tap in washroom</td><td><span class="status-badge resolved">Resolved</span></td></tr>
+              <tr><td>May 1, 2026</td><td>📶 Internet</td><td>Wi-Fi connectivity issue on 2nd floor</td><td><span class="status-badge in-progress">In Progress</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Settings -->
+      <div class="tab-content" id="tab-settings">
+        <div class="payment-form-card" style="max-width:500px;background:var(--white);border-radius:var(--radius-lg);padding:32px;border:1px solid var(--border);">
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--dark);margin-bottom:20px">⚙️ Profile Settings</h3>
+          <div class="form-group"><label>Full Name</label><input type="text" value="Raushan Kumar" /></div>
+          <div class="form-group"><label>Email</label><input type="email" value="raushan.2023cs001@gecsamastipur.ac.in" /></div>
+          <div class="form-group"><label>Phone</label><input type="tel" value="+91 98765 43210" /></div>
+          <div class="form-group"><label>Emergency Contact</label><input type="tel" placeholder="Parent/Guardian number" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="showToast('✅ Profile updated successfully!','success')">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><h3>🎓 GEC Samastipur</h3><p>Government Engineering College, Samastipur is committed to providing quality education and a safe, comfortable hostel experience for all students.</p></div>
+        <div><h4>Quick Links</h4><ul><li><a href="home.html">Home</a></li><li><a href="hostel.html">Hostel</a></li><li><a href="payment.html">Payment</a></li><li><a href="about.html">About</a></li></ul></div>
+        <div><h4>Student Services</h4><ul><li><a href="student-profile.html">Profile</a></li><li><a href="admin.html">Admin Portal</a></li></ul></div>
+        <div><h4>Contact</h4><ul><li>📍 GEC Campus, Samastipur, Bihar 848101</li><li>📞 +91-6274-XXXXXX</li><li>✉️ hostel@gecsamastipur.ac.in</li></ul></div>
+      </div>
+      <div class="footer-bottom">© 2026 Government Engineering College, Samastipur. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    function simulateLogin() {
+      const btn = document.getElementById('googleLoginBtn');
+      if (btn) { btn.textContent = '⏳ Signing in...'; btn.disabled = true; }
+      setTimeout(() => {
+        document.getElementById('loginSection').classList.add('hide');
+        document.getElementById('dashboard').classList.add('show');
+        showToast('✅ Welcome back, Raushan!', 'success');
+      }, 1500);
+    }
+
+    function simulateLogout() {
+      document.getElementById('dashboard').classList.remove('show');
+      document.getElementById('loginSection').classList.remove('hide');
+      const btn = document.getElementById('googleLoginBtn');
+      if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google'; btn.disabled = false; }
+      showToast('👋 Logged out successfully', 'success');
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

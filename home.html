@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GEC Samastipur Hostel Management — Room booking, fee payments, notices, and complaint resolution portal for Government Engineering College, Samastipur." />
+  <title>GEC Samastipur — Hostel Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="home.html" class="nav-logo">
+        <div class="logo-icon">G</div>
+        <span>GEC Hostel</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="home.html" class="active">Home</a>
+        <a href="hostel.html">Hostel</a>
+        <a href="payment.html">Payment</a>
+        <a href="about.html">About</a>
+        <a href="student-profile.html">Profile</a>
+        <a href="admin.html">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Portal is Live — Session 2026-27
+      </div>
+      <h1>Government Engineering College <span>Hostel Management</span></h1>
+      <p>Your one-stop portal for hostel room booking, fee payments, notices, and complaint resolution.</p>
+      <div class="hero-buttons">
+        <a href="student-profile.html" class="btn btn-primary">Student Login →</a>
+        <a href="payment.html" class="btn btn-outline">💳 Pay Fees</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Notices ===== -->
+  <section class="section notices" id="notices">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">📢 Announcements</span>
+        <h2>Latest Notices & Updates</h2>
+        <p>Stay updated with the latest hostel news, schedules, and important deadlines.</p>
+      </div>
+      <div class="notices-wrapper">
+        <div class="notice-list" id="noticeList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Room Availability ===== -->
+  <section class="section rooms" id="rooms">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">🏠 Room Status</span>
+        <h2>Room Availability Preview</h2>
+        <p>Quick overview of room occupancy across hostel blocks.</p>
+      </div>
+      <div class="room-stats">
+        <div class="stat-card">
+          <div class="stat-icon">🏢</div>
+          <div class="stat-num" data-target="120">0</div>
+          <div class="stat-label">Total Rooms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-num" data-target="32">0</div>
+          <div class="stat-label">Available</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔴</div>
+          <div class="stat-num" data-target="82">0</div>
+          <div class="stat-label">Occupied</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔧</div>
+          <div class="stat-num" data-target="6">0</div>
+          <div class="stat-label">Under Maintenance</div>
+        </div>
+      </div>
+      <div class="room-grid" id="roomGrid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="room-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9;border:1px solid #c8e6c9"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fce4ec;border:1px solid #f8bbd0"></div> Occupied</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fff3e0;border:1px solid #ffe0b2"></div> Maintenance</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Fee Structure ===== -->
+  <section class="section fees" id="fees">
+    <div class="container">
+      <div class="section-header">
+        <span class="tag">💰 Fee Structure</span>
+        <h2>Hostel Fee Breakdown</h2>
+        <p>Transparent and affordable fees for all enrolled students.</p>
+      </div>
+      <div class="fee-cards">
+        <!-- Card 1 -->
+        <div class="fee-card">
+          <div class="fee-icon">🍽️</div>
+          <h3>Mess Fee</h3>
+          <p class="fee-subtitle">Monthly dining charges</p>
+          <div class="fee-amount">₹ 3,500</div>
+          <p class="fee-period">Per month • Includes breakfast, lunch & dinner</p>
+        </div>
+        <!-- Card 2 (Featured) -->
+        <div class="fee-card featured">
+          <div class="fee-icon">🏠</div>
+          <h3>Hostel Charge</h3>
+          <p class="fee-subtitle">Annual accommodation fee</p>
+          <div class="fee-amount">₹ 12,000</div>
+          <p class="fee-period">Per year • Includes electricity & water</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="fee-card">
+          <div class="fee-icon">🔒</div>
+          <h3>Security Deposit</h3>
+          <p class="fee-subtitle">One-time refundable</p>
+          <div class="fee-amount">₹ 5,000</div>
+          <p class="fee-period">Refundable at the time of leaving hostel</p>
+        </div>
+      </div>
+      <div class="fee-cta">
+        <a href="payment.html" class="btn btn-primary">Pay Hostel Fees Online →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== i-Complain ===== -->
+  <section class="section complain" id="complain">
+    <div class="container">
+      <div class="complain-wrapper">
+        <div class="complain-info">
+          <span class="tag" style="margin-bottom:16px;display:inline-block">📝 i-Complain</span>
+          <h3>Got a Problem?<br>We're Here to Help.</h3>
+          <p>Submit your hostel-related complaints here. Our team will review and respond within <strong>48 hours</strong>.</p>
+          <div class="complain-features">
+            <div class="complain-feature">
+              <span class="check">✓</span> Track your complaint status online
+            </div>
+            <div class="complain-feature">
+              <span class="check">✓</span> Guaranteed response within 48 hours
+            </div>
+            <div class="complain-feature">
+              <span class="check">✓</span> Direct escalation to warden for urgent issues
+            </div>
+            <div class="complain-feature">
+              <span class="check">✓</span> Anonymous complaints supported
+            </div>
+          </div>
+        </div>
+        <form class="complain-form" id="complainForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="c-name">Full Name</label>
+              <input type="text" id="c-name" placeholder="e.g. Raushan Kumar" required />
+            </div>
+            <div class="form-group">
+              <label for="c-room">Room No.</label>
+              <input type="text" id="c-room" placeholder="e.g. B-204" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="c-type">Complaint Type</label>
+            <select id="c-type" required>
+              <option value="" disabled selected>Select category</option>
+              <option value="electricity">⚡ Electricity</option>
+              <option value="plumbing">🔧 Plumbing</option>
+              <option value="cleaning">🧹 Cleaning</option>
+              <option value="furniture">🪑 Furniture</option>
+              <option value="internet">📶 Internet / Wi-Fi</option>
+              <option value="others">📋 Others</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="c-issue">Describe Your Issue</label>
+            <textarea id="c-issue" rows="4" placeholder="Please describe the issue in detail..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+            Submit Complaint →
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>🎓 GEC Samastipur</h3>
+          <p>Government Engineering College, Samastipur is committed to providing quality education and a safe, comfortable hostel experience for all students.</p>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="hostel.html">Hostel</a></li>
+            <li><a href="payment.html">Payment</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Student Services</h4>
+          <ul>
+            <li><a href="student-profile.html">Profile</a></li>
+            <li><a href="admin.html">Admin Portal</a></li>
+            <li><a href="#complain">i-Complain</a></li>
+            <li><a href="#fees">Fee Structure</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul>
+            <li>📍 GEC Campus, Samastipur, Bihar 848101</li>
+            <li>📞 +91-6274-XXXXXX</li>
+            <li>✉️ hostel@gecsamastipur.ac.in</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 Government Engineering College, Samastipur. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
